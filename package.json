@@ -1,0 +1,20 @@
+{
+  "name": "graphql-pingator",
+  "version": "1.0.0",
+  "description": "GraphQL Pingator was created to alert users when api is down",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.lab325.com/lab325/graphql-pingator"
+  },
+  "keywords": [
+    "graphql",
+    "pingator",
+    "heath-check"
+  ],
+  "author": "tyulyukov",
+  "license": "ISC"
+}
