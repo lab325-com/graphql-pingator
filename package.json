@@ -4,8 +4,11 @@
   "description": "GraphQL Pingator was created to alert users when api is down",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "undo-migrations": "npx sequelize-cli db:migrate:undo:all"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://git.lab325.com/lab325/graphql-pingator"
@@ -16,5 +19,17 @@
     "heath-check"
   ],
   "author": "tyulyukov",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "node-telegram-bot-api": "^0.61.0",
+    "pg": "^8.10.0",
+    "sequelize": "^6.31.0",
+    "telegraf": "^4.12.2",
+    "telegraf-postgres-session": "^1.0.5"
+  },
+  "devDependencies": {
+    "babel-register": "^6.26.0",
+    "sequelize-cli": "^6.6.0"
+  }
 }
