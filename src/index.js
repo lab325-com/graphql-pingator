@@ -1,8 +1,8 @@
 require('dotenv').config()
 
-const log = require("./lib/log.js")
-const bot = require("./lib/telegram/index.js")
+const log = require("./lib/log")
+const bot = require("./lib/telegram/index")
 
 bot.launch()
 
-log.info("Telegram Bot was started")
+log.info("🚀 Telegram Bot was started")

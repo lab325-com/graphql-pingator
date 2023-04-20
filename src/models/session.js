@@ -1,4 +1,4 @@
-const ExtendedModel = require('../classes/ExtendedModel.js')
+const ExtendedModel = require('../classes/ExtendedModel')
 
 module.exports = (sequelize, DataTypes) => {
     class Session extends ExtendedModel {

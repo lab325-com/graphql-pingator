@@ -3,16 +3,18 @@ require('dotenv').config()
 const { Telegraf } = require('telegraf');
 const { message } = require('telegraf/filters');
 const PostgresSession = require('telegraf-postgres-session');
-const log = require('../log.js');
+
+const env = process.env.NODE_ENV || 'development';
+const config = require('../../config/config')[env];
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN);
 
 bot.use((new PostgresSession({
-    user: process.env.DEV_POSTGRES_USER,
-    password: process.env.DEV_POSTGRES_PASSWORD,
-    host: process.env.DEV_POSTGRES_HOST,
-    database: process.env.DEV_POSTGRES_DB,
-    ssl: false
+    user: config.username,
+    password: config.password,
+    host: config.host,
+    database: config.database,
+    ssl: config.ssl
 })).middleware());
 
 bot.command('quit', async (ctx) => {
@@ -22,8 +24,6 @@ bot.command('quit', async (ctx) => {
 bot.on(message('text'), async (ctx) => {
     if (!ctx.session.messageCount)
         ctx.session.messageCount = 0
-
-    log.info(ctx)
 
     ctx.session.messageCount++
     await ctx.reply(`Hello ${ctx.update.message.from.first_name}, count: ${ctx.session.messageCount}`);
