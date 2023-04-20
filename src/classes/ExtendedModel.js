@@ -1,4 +1,4 @@
-const { Model } = "sequelize";
+const { Model } = require("sequelize");
 
 class ExtendedModel extends Model {
 

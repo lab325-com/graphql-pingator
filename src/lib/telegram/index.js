@@ -1,8 +1,11 @@
 require('dotenv').config()
 
-const { Telegraf } = require('telegraf');
+const { Telegraf, Scenes} = require('telegraf');
 const { message } = require('telegraf/filters');
 const PostgresSession = require('telegraf-postgres-session');
+const {mainWithStartKeyboard, settingsButton, backKeyboard} = require("./keyboard");
+const log = require("../log");
+const models = require("../../models");
 
 const env = process.env.NODE_ENV || 'development';
 const config = require('../../config/config')[env];
@@ -17,17 +20,40 @@ bot.use((new PostgresSession({
     ssl: config.ssl
 })).middleware());
 
-bot.command('quit', async (ctx) => {
-    await ctx.leaveChat();
+const stage = new Scenes.Stage([
+    // options
+]);
+
+bot.start(async (ctx) => {
+    await initNewChat(ctx)
 });
 
-bot.on(message('text'), async (ctx) => {
-    if (!ctx.session.messageCount)
-        ctx.session.messageCount = 0
+bot.on(message('group_chat_created'), async (ctx) => {
+    await initNewChat(ctx)
+})
 
-    ctx.session.messageCount++
-    await ctx.reply(`Hello ${ctx.update.message.from.first_name}, count: ${ctx.session.messageCount}`);
+bot.on(message('new_chat_members'), async (ctx) => {
+    if (ctx.message.new_chat_members.find(e => e.id === ctx.botInfo.id) !== undefined) {
+        await initNewChat(ctx)
+    }
 });
+
+bot.hears(settingsButton, async (ctx) => {
+    await ctx.reply('Settings', backKeyboard)
+});
+
+const initNewChat = async (ctx) => {
+    const [job, created] = await models.Job.findOrCreate({
+        where: {
+            id: ctx.update.message.chat.id
+        },
+        defaults: {
+            id: ctx.update.message.chat.id,
+        }
+    })
+
+    await ctx.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥', mainWithStartKeyboard)
+}
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));

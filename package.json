@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "migrate": "npx sequelize-cli db:migrate",
+    "undo-last-migration": "npx sequelize-cli db:migrate:undo",
     "undo-migrations": "npx sequelize-cli db:migrate:undo:all"
   },
   "repository": {
