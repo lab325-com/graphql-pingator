@@ -1,8 +1,7 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+require('dotenv').config()
 
-import log from "./lib/log.js";
-import bot from "./lib/telegram/index.js"
+const log = require("./lib/log.js")
+const bot = require("./lib/telegram/index.js")
 
 bot.launch()
 

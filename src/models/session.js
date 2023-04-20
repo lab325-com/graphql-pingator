@@ -1,10 +1,10 @@
-import ExtendedModel from '../classes/ExtendedModel.js'
+const ExtendedModel = require('../classes/ExtendedModel.js')
 
 module.exports = (sequelize, DataTypes) => {
     class Session extends ExtendedModel {
-        static associate(models) {
+        /*static associate(models) {
 
-        }
+        }*/
     }
 
     Session.init({

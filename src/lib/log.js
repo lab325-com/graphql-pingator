@@ -1,7 +1,9 @@
-const log = {
+class Log {
     info(message) {
         console.log(message)
     }
 }
 
-export default log;
+const log = new Log()
+
+module.exports = log;

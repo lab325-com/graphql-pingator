@@ -1,7 +1,7 @@
-import {Model} from "sequelize";
+const { Model } = "sequelize";
 
 class ExtendedModel extends Model {
 
 }
 
-export default ExtendedModel
+module.exports = ExtendedModel

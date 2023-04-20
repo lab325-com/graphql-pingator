@@ -1,10 +1,9 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+require('dotenv').config()
 
-import { Telegraf } from 'telegraf';
-import { message } from 'telegraf/filters';
-import PostgresSession from "telegraf-postgres-session";
-import log from "../log.js";
+const { Telegraf } = require('telegraf');
+const { message } = require('telegraf/filters');
+const PostgresSession = require('telegraf-postgres-session');
+const log = require('../log.js');
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN);
 
@@ -33,4 +32,4 @@ bot.on(message('text'), async (ctx) => {
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
-export default bot;
+module.exports = bot;

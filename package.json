@@ -8,7 +8,6 @@
     "migrate": "npx sequelize-cli db:migrate",
     "undo-migrations": "npx sequelize-cli db:migrate:undo:all"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://git.lab325.com/lab325/graphql-pingator"

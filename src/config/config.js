@@ -1,5 +1,4 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+require('dotenv').config()
 
 const {
     DEV_POSTGRES_PASSWORD,
@@ -8,7 +7,7 @@ const {
     DEV_POSTGRES_HOST
 } = process.env;
 
-export default {
+module.exports = {
     'local': {
         'username': DEV_POSTGRES_USER,
         'password': DEV_POSTGRES_PASSWORD,
