@@ -9,9 +9,15 @@ const mainWithStartKeyboard = Markup.keyboard([startButton, settingsButton]).res
 const mainWithStopKeyboard = Markup.keyboard([stopButton, settingsButton]).resize()
 
 const backButton = "↩️ Go back"
-const backKeyboard = Markup.keyboard([backButton]).resize()
+
+const intervalButton = "🕒 Interval"
+const showOkResultTrueButton = "Show successful result ✅"
+const showOkResultFalseButton = "Show successful result ❌"
+const showElapsedTimeTrueButton = "Show elapsed time ✅"
+const showElapsedTimeFalseButton = "Show elapsed time ❌"
 
 module.exports = {
-    backButton, backKeyboard,
+    backButton,
     settingsButton, startButton, stopButton, mainWithStartKeyboard, mainWithStopKeyboard,
+    intervalButton, showOkResultTrueButton, showOkResultFalseButton, showElapsedTimeFalseButton, showElapsedTimeTrueButton
 }

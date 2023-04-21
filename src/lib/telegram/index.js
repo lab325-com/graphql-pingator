@@ -7,6 +7,8 @@ const {mainWithStartKeyboard, settingsButton, backKeyboard} = require("./keyboar
 const log = require("../log");
 const models = require("../../models");
 
+const options = require("./scenes/options/index")
+
 const env = process.env.NODE_ENV || 'development';
 const config = require('../../config/config')[env];
 
@@ -21,28 +23,30 @@ bot.use((new PostgresSession({
 })).middleware());
 
 const stage = new Scenes.Stage([
-    // options
+    options
 ]);
 
+bot.use(stage.middleware())
+
 bot.start(async (ctx) => {
-    await initNewChat(ctx)
+    await findOrCreateNewChat(ctx)
 });
 
 bot.on(message('group_chat_created'), async (ctx) => {
-    await initNewChat(ctx)
+    await findOrCreateNewChat(ctx)
 })
 
 bot.on(message('new_chat_members'), async (ctx) => {
     if (ctx.message.new_chat_members.find(e => e.id === ctx.botInfo.id) !== undefined) {
-        await initNewChat(ctx)
+        await findOrCreateNewChat(ctx)
     }
 });
 
 bot.hears(settingsButton, async (ctx) => {
-    await ctx.reply('Settings', backKeyboard)
+    await ctx.scene.enter('options')
 });
 
-const initNewChat = async (ctx) => {
+const findOrCreateNewChat = async (ctx) => {
     const [job, created] = await models.Job.findOrCreate({
         where: {
             id: ctx.update.message.chat.id
