@@ -3,11 +3,11 @@ require('dotenv').config()
 const { Telegraf, Scenes} = require('telegraf');
 const { message } = require('telegraf/filters');
 const PostgresSession = require('telegraf-postgres-session');
-const {mainWithStartKeyboard, settingsButton, backKeyboard} = require("./keyboard");
 const log = require("../log");
 const models = require("../../models");
 
-const options = require("./scenes/options/index")
+const endpoints = require("./scenes/endpoints/index")
+const addEndpoint = require("./scenes/endpoints/add");
 
 const env = process.env.NODE_ENV || 'development';
 const config = require('../../config/config')[env];
@@ -23,40 +23,37 @@ bot.use((new PostgresSession({
 })).middleware());
 
 const stage = new Scenes.Stage([
-    options
+    endpoints,
+    addEndpoint
 ]);
 
 bot.use(stage.middleware())
 
 bot.start(async (ctx) => {
-    await findOrCreateNewChat(ctx)
+    await sendGreetingMessage(ctx)
 });
 
 bot.on(message('group_chat_created'), async (ctx) => {
-    await findOrCreateNewChat(ctx)
+    await sendGreetingMessage(ctx)
 })
 
 bot.on(message('new_chat_members'), async (ctx) => {
     if (ctx.message.new_chat_members.find(e => e.id === ctx.botInfo.id) !== undefined) {
-        await findOrCreateNewChat(ctx)
+        await sendGreetingMessage(ctx)
     }
 });
 
-bot.hears(settingsButton, async (ctx) => {
-    await ctx.scene.enter('options')
+bot.command('help', async (ctx) => {
+    await ctx.replyWithHTML('Here is list of commands (not so long xD):' +
+        '\n/endpoints - shows list of endpoints')
+})
+
+bot.command('endpoints', async (ctx) => {
+    await ctx.scene.enter('endpoints')
 });
 
-const findOrCreateNewChat = async (ctx) => {
-    const [job, created] = await models.Job.findOrCreate({
-        where: {
-            id: ctx.update.message.chat.id
-        },
-        defaults: {
-            id: ctx.update.message.chat.id,
-        }
-    })
-
-    await ctx.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥', mainWithStartKeyboard)
+const sendGreetingMessage = async (ctx) => {
+    await ctx.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥\n\nType /endpoints and start working with me.')
 }
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

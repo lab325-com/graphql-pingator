@@ -1,23 +1,56 @@
 'use strict';
-const {TABLE_NAME_ENDPOINTS, TABLE_NAME_JOBS} = require("../constants/Table");
+const {TABLE_NAME_ENDPOINTS} = require("../constants/Table");
+const {ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL} = require("../constants/Endpoint");
+const {HTTP_METHOD_GET, HTTP_METHOD_POST} = require("../constants/Http");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(TABLE_NAME_ENDPOINTS, {
       id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
+        primaryKey: true
       },
-      jobId: {
-        type: Sequelize.INTEGER,
+      name: {
+        type: Sequelize.STRING,
         allowNull: false,
-        onDelete: 'cascade',
-        references: { model: TABLE_NAME_JOBS }
+      },
+      chatId: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       url: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      type: {
+        type: Sequelize.ENUM(ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL),
+        allowNull: false,
+      },
+      data: {
+        type: Sequelize.JSON,
+        allowNull: true
+      },
+      httpMethod: {
+        type: Sequelize.ENUM(HTTP_METHOD_GET, HTTP_METHOD_POST),
+        allowNull: false,
+      },
+      restSuccessStatus: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
+      interval: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      expireAt: {
+        allowNull: true,
+        type: Sequelize.DATE
+      },
+      lastQueuedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,

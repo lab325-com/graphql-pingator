@@ -1,0 +1,4 @@
+const HTTP_METHOD_GET = 'GET'
+const HTTP_METHOD_POST = 'POST'
+
+module.exports = { HTTP_METHOD_GET, HTTP_METHOD_POST }

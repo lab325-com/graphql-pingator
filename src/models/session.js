@@ -1,4 +1,5 @@
 const ExtendedModel = require('../classes/ExtendedModel')
+const {TABLE_NAME_SESSIONS} = require("../constants/Table");
 
 module.exports = (sequelize, DataTypes) => {
     class Session extends ExtendedModel {
@@ -20,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         sequelize,
         modelName: 'Session',
-        tableName: 'postgress_sessions'
+        tableName: TABLE_NAME_SESSIONS
     });
 
     return Session;

@@ -1,8 +1,9 @@
 'use strict';
+const {TABLE_NAME_SESSIONS} = require("../constants/Table");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('postgress_sessions', {
+    await queryInterface.createTable(TABLE_NAME_SESSIONS, {
       id: {
         type: Sequelize.STRING,
         primaryKey: true,
@@ -15,6 +16,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('postgress_sessions');
+    await queryInterface.dropTable(TABLE_NAME_SESSIONS);
   }
 };
