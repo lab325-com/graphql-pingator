@@ -9,15 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     Session.init({
-        id: {
-            type: DataTypes.STRING,
-            primaryKey: true,
-            allowNull: false,
-        },
-        session: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
+        session: DataTypes.STRING
     }, {
         sequelize,
         modelName: 'Session',

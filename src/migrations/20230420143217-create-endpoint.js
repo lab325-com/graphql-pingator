@@ -8,7 +8,7 @@ module.exports = {
     await queryInterface.createTable(TABLE_NAME_ENDPOINTS, {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
         allowNull: false,
         primaryKey: true
       },
@@ -34,7 +34,7 @@ module.exports = {
       },
       httpMethod: {
         type: Sequelize.ENUM(HTTP_METHOD_GET, HTTP_METHOD_POST),
-        allowNull: false,
+        allowNull: true,
       },
       restSuccessStatus: {
         type: Sequelize.INTEGER,
