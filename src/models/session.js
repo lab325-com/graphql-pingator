@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     Session.init({
-        session: DataTypes.STRING
+        session: DataTypes.TEXT
     }, {
         sequelize,
         modelName: 'Session',

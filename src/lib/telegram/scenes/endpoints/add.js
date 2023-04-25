@@ -6,7 +6,9 @@ const {HTTP_METHOD_GET, HTTP_METHOD_POST} = require("../../../../constants/Http"
 const models = require("../../../../models");
 
 function isMessageNullOrEmpty(ctx) {
-    return ctx.message.text === undefined || ctx.message.text === null || ctx.message.text.trim() === ''
+    return ctx.message === undefined || ctx.message === null
+        || ctx.message.text === undefined || ctx.message.text === null
+        || ctx.message.text.trim() === ''
 }
 
 async function sendValidationFailedMessage(ctx, paramName) {
@@ -75,7 +77,7 @@ async (ctx) => {
         return await sendValidationFailedMessage(ctx, 'HTTP Method')
     }
 
-    const httpMethod = ctx.message.text.toLowerCase()
+    const httpMethod = ctx.message.text.toUpperCase()
     if (httpMethod !== HTTP_METHOD_GET && httpMethod !== HTTP_METHOD_POST) {
         return await sendValidationFailedMessage(ctx, 'HTTP Method')
     }
@@ -91,7 +93,7 @@ async (ctx) => {
     }
 
     const restSuccessStatus = parseInt(ctx.message.text)
-    if (isNaN(restSuccessStatus) || (restSuccessStatus < 100 && restSuccessStatus > 599)) {
+    if (isNaN(restSuccessStatus) || restSuccessStatus < 100 || restSuccessStatus > 599) {
         return await sendValidationFailedMessage(ctx, 'success status code')
     }
 
@@ -129,6 +131,7 @@ async (ctx) => {
     ctx.wizard.state.canSave = true
 
     await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \ne.g <pre>in 60 days</pre> \n\n📌 or click /save and it won't expire`)
+    // TODO implement this field + auto save and
 })
 
 addEndpoint.command('cancel', async (ctx) => {
@@ -138,16 +141,18 @@ addEndpoint.command('cancel', async (ctx) => {
 
 addEndpoint.command('save', async (ctx) => {
     if (ctx.wizard.state.canSave === true) {
-        log.info(ctx.wizard.state.endpoint)
+        try {
+            const endpoint = await models.Endpoint.create({ id: null, ...ctx.wizard.state.endpoint })
 
-        const endpoint = await models.Endpoint.create({ id: null, ...ctx.wizard.state.endpoint })
+            await ctx.replyWithHTML(`✅ New endpoint was created!`)
 
-        log.info(endpoint.toJSON())
-
-        await ctx.replyWithHTML(`✅ New endpoint was created!`)
-
-        delete ctx.wizard.state.endpoint
-        return await ctx.scene.enter('endpoints')
+            delete ctx.wizard.state.endpoint
+            return await ctx.scene.enter('endpoints')
+        }
+        catch (e) {
+            log.error(e)
+            ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
+        }
     }
 })
 

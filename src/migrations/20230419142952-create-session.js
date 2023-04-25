@@ -10,7 +10,7 @@ module.exports = {
         allowNull: false,
       },
       session: {
-        type: Sequelize.JSON,
+        type: Sequelize.TEXT,
         allowNull: false,
       }
     });
