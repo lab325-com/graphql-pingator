@@ -2,6 +2,7 @@ const { Scenes, Markup} = require("telegraf");
 const models = require("../../../../models");
 const {fmt, bold} = require("telegraf/format");
 const log = require("../../../log");
+const { SCENE_NAME_ENDPOINTS, SCENE_NAME_ADD_ENDPOINT} = require("../../../../constants/Scene")
 
 const endpointsPerPage = 5
 
@@ -40,7 +41,7 @@ async function getInlineEndpointsKeyboard(chatId, page) {
     return { keyboard, rows, count, maxPage }
 }
 
-const endpoints = new Scenes.BaseScene("endpoints")
+const endpoints = new Scenes.BaseScene(SCENE_NAME_ENDPOINTS)
 
 endpoints.enter(async (ctx) => {
     delete ctx.session.maxPage
@@ -69,7 +70,7 @@ endpoints.enter(async (ctx) => {
 })
 
 endpoints.command('add', async (ctx) => {
-    await ctx.scene.enter('add-endpoint')
+    await ctx.scene.enter(SCENE_NAME_ADD_ENDPOINT)
 })
 
 endpoints.on('callback_query', async (ctx) => {

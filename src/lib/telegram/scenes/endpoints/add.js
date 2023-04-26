@@ -4,6 +4,8 @@ const {ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL} = require("../../../../constan
 const {isValidHttpUrl, isValidJsonString} = require("../../../validator");
 const {HTTP_METHOD_GET, HTTP_METHOD_POST} = require("../../../../constants/Http");
 const models = require("../../../../models");
+const {SCENE_NAME_ADD_ENDPOINT} = require("../../../../constants/Scene");
+const {addToDate} = require("../../../date");
 
 function isMessageNullOrEmpty(ctx) {
     return ctx.message === undefined || ctx.message === null
@@ -15,7 +17,7 @@ async function sendValidationFailedMessage(ctx, paramName) {
     await ctx.replyWithHTML(`🚫 <b>Invalid ${paramName} was sent.</b> Enter ${paramName} again!`)
 }
 
-const addEndpoint = new Scenes.WizardScene('add-endpoint',
+const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 async (ctx) => {
     ctx.wizard.state.endpoint = {}
     ctx.wizard.state.canSave = false
@@ -31,8 +33,7 @@ async (ctx) => {
     ctx.wizard.state.endpoint.chatId = ctx.message.chat.id.toString()
     ctx.wizard.state.endpoint.name = ctx.message.text.trim()
 
-    await ctx.replyWithHTML(`<b>Enter type of endpoint.</b> Available types: \n- ${ENDPOINT_TYPE_REST}; \n- ${ENDPOINT_TYPE_GRAPHQL}`)
-    // return await ctx.scene.enter('endpoints')
+    await ctx.replyWithHTML(`<b>Enter type of endpoint.</b> Available types: \n✔️ ${ENDPOINT_TYPE_REST}; \n✔️ ${ENDPOINT_TYPE_GRAPHQL}`)
     return ctx.wizard.next()
 },
 async (ctx) => {
@@ -42,8 +43,7 @@ async (ctx) => {
 
     const type = ctx.message.text.toLowerCase()
     if (type !== ENDPOINT_TYPE_REST && type !== ENDPOINT_TYPE_GRAPHQL) {
-        await ctx.replyWithHTML(`🚫 <b>Invalid type was sent.</b> Enter type again!`)
-        return
+        return await sendValidationFailedMessage(ctx, 'type')
     }
 
     ctx.wizard.state.endpoint.type = type
@@ -65,11 +65,11 @@ async (ctx) => {
     ctx.wizard.state.endpoint.url = url
 
     if (ctx.wizard.state.endpoint.type === ENDPOINT_TYPE_GRAPHQL) {
-        await ctx.replyWithHTML(`<b>Enter data/options that will be sent in request.</b>\ne.g. <pre language="json">{ 'headers': { 'Authorization': 'token' }, 'body': { ... } }</pre>`)
+        await ctx.replyWithHTML(`<b>Enter data/options that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
         return ctx.wizard.selectStep(ctx.wizard.cursor + 3)
     }
 
-    await ctx.replyWithHTML(`<b>Enter HTTP Method.</b> Available methods: \n- ${HTTP_METHOD_GET}; \n- ${HTTP_METHOD_POST}`)
+    await ctx.replyWithHTML(`<b>Enter HTTP Method.</b> Available methods: \n✔️ ${HTTP_METHOD_GET}; \n✔️ ${HTTP_METHOD_POST}`)
     return ctx.wizard.next()
 },
 async (ctx) => {
@@ -84,7 +84,7 @@ async (ctx) => {
 
     ctx.wizard.state.endpoint.httpMethod = httpMethod
 
-    await ctx.replyWithHTML(`<b>Enter success status code of endpoint</b> \ne.g. <pre>200</pre>`)
+    await ctx.replyWithHTML(`<b>Enter success status code of endpoint</b> \ne.g. 200`)
     return ctx.wizard.next()
 },
 async (ctx) => {
@@ -99,7 +99,7 @@ async (ctx) => {
 
     ctx.wizard.state.endpoint.restSuccessStatus = restSuccessStatus
 
-    await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request.</b>\ne.g. <pre language="json">{ 'headers': { 'Authorization': 'token' }, 'body': { ... } }</pre>`)
+    await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
     return ctx.wizard.next()
 },
 async (ctx) => {
@@ -130,8 +130,31 @@ async (ctx) => {
     ctx.wizard.state.endpoint.interval = interval
     ctx.wizard.state.canSave = true
 
-    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \ne.g <pre>in 60 days</pre> \n\n📌 or click /save and it won't expire`)
-    // TODO implement this field + auto save and
+    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 or click /save and it won't expire`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx)) {
+        return await sendValidationFailedMessage(ctx, 'expiration')
+    }
+
+    const literals = ctx.message.text.split(' ')
+
+    if (literals.length !== 2) {
+        return await sendValidationFailedMessage(ctx, 'expiration')
+    }
+
+    try {
+        const amount = literals[0]
+        const unit = literals[1]
+
+        ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit)
+    }
+    catch (e) {
+        return await sendValidationFailedMessage(ctx, 'expiration')
+    }
+
+    await createEndpoint(ctx)
 })
 
 addEndpoint.command('cancel', async (ctx) => {
@@ -141,19 +164,23 @@ addEndpoint.command('cancel', async (ctx) => {
 
 addEndpoint.command('save', async (ctx) => {
     if (ctx.wizard.state.canSave === true) {
-        try {
-            const endpoint = await models.Endpoint.create({ id: null, ...ctx.wizard.state.endpoint })
-
-            await ctx.replyWithHTML(`✅ New endpoint was created!`)
-
-            delete ctx.wizard.state.endpoint
-            return await ctx.scene.enter('endpoints')
-        }
-        catch (e) {
-            log.error(e)
-            ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
-        }
+        await createEndpoint(ctx)
     }
 })
+
+async function createEndpoint(ctx) {
+    try {
+        await models.Endpoint.create(ctx.wizard.state.endpoint)
+
+        await ctx.replyWithHTML(`✅ New endpoint was created!`)
+
+        delete ctx.wizard.state.endpoint
+        return await ctx.scene.enter('endpoints')
+    }
+    catch (e) {
+        log.error(e)
+        ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
+    }
+}
 
 module.exports = addEndpoint

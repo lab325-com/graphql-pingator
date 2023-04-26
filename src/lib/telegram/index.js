@@ -3,8 +3,6 @@ require('dotenv').config()
 const { Telegraf, Scenes} = require('telegraf');
 const { message } = require('telegraf/filters');
 const PostgresSession = require('telegraf-postgres-session');
-const log = require("../log");
-const models = require("../../models");
 
 const endpoints = require("./scenes/endpoints/index")
 const addEndpoint = require("./scenes/endpoints/add");
@@ -49,7 +47,7 @@ bot.command('help', async (ctx) => {
 })
 
 bot.command('endpoints', async (ctx) => {
-    await ctx.scene.enter('endpoints')
+    await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
 });
 
 const sendGreetingMessage = async (ctx) => {
