@@ -6,6 +6,8 @@ const PostgresSession = require('telegraf-postgres-session');
 
 const endpoints = require("./scenes/endpoints/index")
 const addEndpoint = require("./scenes/endpoints/add");
+const deleteEndpoint = require("./scenes/endpoints/delete");
+
 const {SCENE_NAME_ENDPOINTS} = require("../../constants/Scene");
 
 const env = process.env.NODE_ENV || 'development';
@@ -23,7 +25,8 @@ bot.use((new PostgresSession({
 
 const stage = new Scenes.Stage([
     endpoints,
-    addEndpoint
+    addEndpoint,
+    deleteEndpoint
 ]);
 
 bot.use(stage.middleware())
