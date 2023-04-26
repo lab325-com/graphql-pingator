@@ -22,6 +22,7 @@ async function getInlineEndpointsKeyboard(chatId, sceneEnteredAt, page) {
         page = 0;
 
     const { count, rows } = await models.Endpoint.findAndCountAll({
+        attributes: ['id', 'name', 'type'],
         where: {
             chatId: chatId
         },
