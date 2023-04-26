@@ -6,6 +6,7 @@ const PostgresSession = require('telegraf-postgres-session');
 
 const endpoints = require("./scenes/endpoints/index")
 const addEndpoint = require("./scenes/endpoints/add");
+const {SCENE_NAME_ENDPOINTS} = require("../../constants/Scene");
 
 const env = process.env.NODE_ENV || 'development';
 const config = require('../../config/config')[env];

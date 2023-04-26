@@ -35,4 +35,40 @@ function addToDate(sourceDate, number, unit) {
     return newDate;
 }
 
-module.exports = { addToDate }
+function getHumanReadableDateDifference(startDate, endDate) {
+    if (endDate === undefined || endDate === null)
+        return 'never'
+
+    // Calculate the time difference in milliseconds
+    let timeDifference = Math.abs(endDate - startDate);
+
+    // Define the time units and their corresponding milliseconds
+    const timeUnits = [
+        { unit: "year", ms: 31536000000 },
+        { unit: "month", ms: 2592000000 },
+        { unit: "day", ms: 86400000 },
+        { unit: "hour", ms: 3600000 },
+        { unit: "minute", ms: 60000 },
+        { unit: "second", ms: 1000 }
+    ];
+
+    // Initialize an empty array to store the time difference components
+    const timeComponents = [];
+
+    // Loop through the time units and calculate the number of each unit
+    for (let i = 0; i < timeUnits.length; i++) {
+        const { unit, ms } = timeUnits[i];
+        const unitCount = Math.floor(timeDifference / ms);
+
+        if (unitCount > 0) {
+            timeComponents.push(`${unitCount} ${unit}${unitCount > 1 ? 's' : ''}`);
+            timeDifference -= unitCount * ms;
+        }
+    }
+
+    // Join the time components into a string
+    return timeComponents.join(", ");
+}
+
+
+module.exports = { addToDate, getHumanReadableDateDifference }
