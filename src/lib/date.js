@@ -36,9 +36,6 @@ function addToDate(sourceDate, number, unit) {
 }
 
 function getHumanReadableDateDifference(startDate, endDate) {
-    if (endDate === undefined || endDate === null)
-        return 'never'
-
     // Calculate the time difference in milliseconds
     let timeDifference = Math.abs(endDate - startDate);
 

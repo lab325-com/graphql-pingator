@@ -22,7 +22,7 @@ async function getInlineEndpointsKeyboard(chatId, sceneEnteredAt, page) {
         page = 0;
 
     const { count, rows } = await models.Endpoint.findAndCountAll({
-        attributes: ['id', 'name', 'type'],
+        attributes: ['id', 'name', 'type', 'expireAt'],
         where: {
             chatId: chatId
         },
@@ -32,8 +32,14 @@ async function getInlineEndpointsKeyboard(chatId, sceneEnteredAt, page) {
 
     const buttons = []
     for (const endpoint of rows) {
-        const button = `${endpoint.name} (${endpoint.type})`
-        buttons.push([Markup.button.callback(button, callbackData(sceneEnteredAt, endpoint.id))])
+        let buttonText = `${endpoint.name} (${endpoint.type})`
+
+        if (endpoint.expireAt === null)
+            buttonText += ' ♾️'
+        else if (new Date().getTime() >= new Date(endpoint.expireAt).getTime())
+            buttonText += ' ⌛'
+
+        buttons.push([Markup.button.callback(buttonText, callbackData(sceneEnteredAt, endpoint.id))])
     }
 
     const maxPage = Math.ceil(count / endpointsPerPage)
@@ -136,6 +142,14 @@ endpoints.on('callback_query', async (ctx) => {
     }
 
     let endpointsRepresentation = `✅ Selected endpoint <b>${endpoint.name}</b>\n`
+
+    if (endpoint.expireAt === null)
+        endpointsRepresentation += `never expires ♾️\n`
+    else if (new Date().getTime() < new Date(endpoint.expireAt).getTime())
+        endpointsRepresentation += `expires in: ${getHumanReadableDateDifference(new Date(), endpoint.expireAt)}\n`
+    else
+        endpointsRepresentation += `already expired ⌛\n`
+
     endpointsRepresentation += `url: ${endpoint.url}\n`
     endpointsRepresentation += `type: ${endpoint.type}\n`
     endpointsRepresentation += `data: ${endpoint.data}\n`
@@ -145,8 +159,7 @@ endpoints.on('callback_query', async (ctx) => {
         endpointsRepresentation += `rest success status: ${endpoint.restSuccessStatus}\n`
     }
 
-    endpointsRepresentation += `expires in: ${getHumanReadableDateDifference(new Date(), endpoint.expireAt)}`
-    endpointsRepresentation += `\n\n📌 Click /delete or /edit`
+    endpointsRepresentation += `\n📌 Click /delete or /edit`
 
     const message = await ctx.replyWithHTML(endpointsRepresentation)
 
