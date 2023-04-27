@@ -1,7 +1,7 @@
 require('dotenv').config()
-
-const log = require("./lib/log")
 const bot = require("./lib/telegram/index")
+
+const log = require('./lib/log')
 
 bot.launch()
 

@@ -4,18 +4,9 @@ const {ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL} = require("../../../../constan
 const {isValidHttpUrl, isValidJsonString} = require("../../../validator");
 const {HTTP_METHOD_GET, HTTP_METHOD_POST} = require("../../../../constants/Http");
 const models = require("../../../../models");
-const {SCENE_NAME_ADD_ENDPOINT} = require("../../../../constants/Scene");
+const {SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS} = require("../../../../constants/Scene");
 const {addToDate} = require("../../../date");
-
-function isMessageNullOrEmpty(ctx) {
-    return ctx.message === undefined || ctx.message === null
-        || ctx.message.text === undefined || ctx.message.text === null
-        || ctx.message.text.trim() === ''
-}
-
-async function sendValidationFailedMessage(ctx, paramName) {
-    await ctx.replyWithHTML(`🚫 <b>Invalid ${paramName} was sent.</b> Enter ${paramName} again!`)
-}
+const {sendValidationFailedMessage, isMessageNullOrEmpty} = require("../../contextHelper");
 
 const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 async (ctx) => {
@@ -123,7 +114,7 @@ async (ctx) => {
     }
 
     const interval = parseInt(ctx.message.text)
-    if (isNaN(interval) || interval < 1) {
+    if (isNaN(interval) || interval < 1 || interval > 2147483647) {
         return await sendValidationFailedMessage(ctx, 'interval')
     }
 
@@ -145,8 +136,11 @@ async (ctx) => {
     }
 
     try {
-        const amount = literals[0]
+        const amount = parseInt(literals[0])
         const unit = literals[1]
+
+        if (isNaN(amount) || amount < 1)
+            return await sendValidationFailedMessage(ctx, 'expiration')
 
         ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit)
     }
@@ -159,7 +153,7 @@ async (ctx) => {
 
 addEndpoint.command('cancel', async (ctx) => {
     delete ctx.wizard.state.endpoint
-    await ctx.scene.enter('endpoints')
+    await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
 })
 
 addEndpoint.command('save', async (ctx) => {
@@ -175,11 +169,11 @@ async function createEndpoint(ctx) {
         await ctx.replyWithHTML(`✅ New endpoint was created!`)
 
         delete ctx.wizard.state.endpoint
-        return await ctx.scene.enter('endpoints')
+        return await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
     }
     catch (e) {
         log.error(e)
-        ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
+        await ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
     }
 }
 

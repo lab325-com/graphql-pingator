@@ -7,13 +7,18 @@ const PostgresSession = require('telegraf-postgres-session');
 const endpoints = require("./scenes/endpoints/index")
 const addEndpoint = require("./scenes/endpoints/add");
 const deleteEndpoint = require("./scenes/endpoints/delete");
+const editEndpoint = require("./scenes/endpoints/edit");
 
 const {SCENE_NAME_ENDPOINTS} = require("../../constants/Scene");
 
 const env = process.env.NODE_ENV || 'development';
-const config = require('../../config/config')[env];
+const config = require('../../config/sequelizeConfig')[env];
 
-const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN);
+const token = env === 'development'
+    ? process.env.DEV_TELEGRAM_BOT_API_TOKEN
+    : process.env.TELEGRAM_BOT_API_TOKEN
+
+const bot = new Telegraf(token);
 
 bot.use((new PostgresSession({
     user: config.username,
@@ -26,7 +31,8 @@ bot.use((new PostgresSession({
 const stage = new Scenes.Stage([
     endpoints,
     addEndpoint,
-    deleteEndpoint
+    deleteEndpoint,
+    editEndpoint
 ]);
 
 bot.use(stage.middleware())

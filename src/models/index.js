@@ -5,7 +5,9 @@ const fs = require("fs");
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'local';
 const db = {};
-const config = require('../config/config')[env];
+const config = require('../config/sequelizeConfig')[env];
+
+config.logging = message => log.log('query', message);
 
 log.info('Sequelize connecting...');
 

@@ -1,13 +1,10 @@
-class Log {
-    info(message) {
-        console.log(message)
-    }
+const logger = require("@lab325/log");
+const {CONSOLE_LOGGING_LEVELS} = require("../config/env");
 
-    error(err) {
-        console.error(err)
-    }
-}
-
-const log = new Log()
+const log = logger.default({
+    consoleLoggingLevels: CONSOLE_LOGGING_LEVELS,
+    writeFiles: false
+    // logDir
+});
 
 module.exports = log;

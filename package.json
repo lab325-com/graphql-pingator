@@ -21,15 +21,14 @@
   "author": "tyulyukov",
   "license": "ISC",
   "dependencies": {
+    "@lab325/log": "^1.0.1",
     "dotenv": "^16.0.3",
-    "node-telegram-bot-api": "^0.61.0",
     "pg": "^8.10.0",
     "sequelize": "^6.31.0",
     "telegraf": "^4.12.2",
     "telegraf-postgres-session": "^1.0.5"
   },
   "devDependencies": {
-    "babel-register": "^6.26.0",
     "sequelize-cli": "^6.6.0"
   }
 }

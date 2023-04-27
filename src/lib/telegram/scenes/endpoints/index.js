@@ -1,7 +1,7 @@
 const { Scenes, Markup} = require("telegraf");
 const models = require("../../../../models");
 const {fmt, bold} = require("telegraf/format");
-const { SCENE_NAME_ENDPOINTS, SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_DELETE_ENDPOINT} = require("../../../../constants/Scene")
+const { SCENE_NAME_ENDPOINTS, SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_DELETE_ENDPOINT, SCENE_NAME_EDIT_ENDPOINT} = require("../../../../constants/Scene")
 const {getHumanReadableDateDifference} = require("../../../date");
 const {ENDPOINT_TYPE_REST} = require("../../../../constants/Endpoint");
 
@@ -94,6 +94,13 @@ endpoints.command('delete', async (ctx) => {
         return
 
     await ctx.scene.enter(SCENE_NAME_DELETE_ENDPOINT, { endpointId: ctx.scene.state.selectedEndpoint.id} )
+})
+
+endpoints.command('edit', async (ctx) => {
+    if (ctx.scene.state.selectedEndpoint === undefined || ctx.scene.state.selectedEndpoint === null)
+        return
+
+    await ctx.scene.enter(SCENE_NAME_EDIT_ENDPOINT, { endpointId: ctx.scene.state.selectedEndpoint.id} )
 })
 
 endpoints.on('callback_query', async (ctx) => {
