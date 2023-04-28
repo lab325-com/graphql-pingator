@@ -1,5 +1,14 @@
 require('dotenv').config()
 
+// TODO: rename secrets to
+/*
+POSTGRES_USER
+POSTGRES_PASSWORD
+POSTGRES_DB
+POSTGRES_HOST
+POSTGRES_PORT
+ */
+
 const {
     DEV_POSTGRES_PASSWORD,
     DEV_POSTGRES_USER,
