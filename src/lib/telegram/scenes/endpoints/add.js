@@ -121,12 +121,16 @@ async (ctx) => {
     ctx.wizard.state.endpoint.interval = interval
     ctx.wizard.state.canSave = true
 
-    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 or click /save and it won't expire`)
+    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> or click just /save and it won't expire`)
     return ctx.wizard.next()
 },
 async (ctx) => {
     if (isMessageNullOrEmpty(ctx)) {
         return await sendValidationFailedMessage(ctx, 'expiration')
+    }
+
+    if (ctx.message.text.toLowerCase() === 'never') {
+        return await createEndpoint(ctx)
     }
 
     const literals = ctx.message.text.split(' ')

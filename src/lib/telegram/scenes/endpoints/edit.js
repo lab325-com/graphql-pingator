@@ -7,15 +7,19 @@ const log = require("../../../log");
 
 const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 async (ctx) => {
-    ctx.wizard.state.endpoint = { expireAt: null }
-    ctx.wizard.state.canSave = true
+    ctx.wizard.state.endpoint = {}
 
-    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 if you don't want to edit click /cancel or click /save and it won't expire`)
+    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> and it won't expire \n📌 if you don't want to edit click /cancel`)
     return ctx.wizard.next()
 },
 async (ctx) => {
     if (isMessageNullOrEmpty(ctx)) {
         return await sendValidationFailedMessage(ctx, 'expiration')
+    }
+
+    if (ctx.message.text.toLowerCase() === 'never') {
+        ctx.wizard.state.endpoint.expireAt = null
+        return await saveEndpoint(ctx)
     }
 
     const literals = ctx.message.text.split(' ')
@@ -43,11 +47,6 @@ async (ctx) => {
 editEndpoint.command('cancel', async (ctx) => {
     delete ctx.wizard.state.endpoint
     await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
-})
-
-editEndpoint.command('save', async (ctx) => {
-    if (ctx.wizard.state.canSave === true)
-        await saveEndpoint(ctx)
 })
 
 async function saveEndpoint(ctx) {

@@ -12,20 +12,17 @@ const editEndpoint = require("./scenes/endpoints/edit");
 const {SCENE_NAME_ENDPOINTS} = require("../../constants/Scene");
 
 const env = process.env.NODE_ENV || 'development';
-const config = require('../../config/sequelizeConfig')[env];
+const sequelizeConfig = require('../../config/sequelizeConfig')[env];
+const telegramConfig = require('../../config/telegramConfig')[env];
 
-const token = env === 'development'
-    ? process.env.DEV_TELEGRAM_BOT_API_TOKEN
-    : process.env.TELEGRAM_BOT_API_TOKEN
-
-const bot = new Telegraf(token);
+const bot = new Telegraf(telegramConfig.token);
 
 bot.use((new PostgresSession({
-    user: config.username,
-    password: config.password,
-    host: config.host,
-    database: config.database,
-    ssl: config.ssl
+    user: sequelizeConfig.username,
+    password: sequelizeConfig.password,
+    host: sequelizeConfig.host,
+    database: sequelizeConfig.database,
+    ssl: sequelizeConfig.ssl
 })).middleware());
 
 const stage = new Scenes.Stage([
