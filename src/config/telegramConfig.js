@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const {
-    DEV_TELEGRAM_BOT_API_TOKEN,
+    DEV_TELEGRAM_BOT_API_TOKEN
 } = process.env;
 
 module.exports = {
