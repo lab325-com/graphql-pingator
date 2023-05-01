@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 config()
 
 import {
-    TELEGRAM_BOT_API_TOKEN,
+    TELEGRAM_BOT_API_TOKEN
 } from '@config/env';
 
 const tgConfig = {

@@ -10,9 +10,12 @@ import deleteEndpoint from './scenes/endpoints/delete';
 import editEndpoint from './scenes/endpoints/edit';
 import { SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 
+import telegramConfigs from '../../config/telegramConfig';
+import sequelizeConfigs from '../../config/sequelizeConfig';
+
 const env = process.env.NODE_ENV || 'development';
-const sequelizeConfig = require('../../config/sequelizeConfig')[env];
-const telegramConfig = require('../../config/telegramConfig')[env];
+const sequelizeConfig = sequelizeConfigs[env];
+const telegramConfig = telegramConfigs[env];
 
 const bot = new Telegraf(telegramConfig.token);
 

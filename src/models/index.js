@@ -2,11 +2,12 @@ import log from '@lib/log';
 import path from 'path';
 import { Sequelize } from 'sequelize';
 import fs from 'fs';
+import configs from '@config/sequelizeConfig';
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'local';
 const db = {};
-const config = require('@config/sequelizeConfig')[env];
+const config = configs[env];
 
 config.logging = message => log.log('query', message);
 

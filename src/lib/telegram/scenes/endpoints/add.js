@@ -134,8 +134,7 @@ async (ctx) => {
             return await sendValidationFailedMessage(ctx, 'expiration')
 
         ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit)
-    }
-    catch (e) {
+    } catch (e) {
         return await sendValidationFailedMessage(ctx, 'expiration')
     }
 
@@ -160,8 +159,7 @@ async function createEndpoint(ctx) {
 
         delete ctx.wizard.state.endpoint
         return await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
-    }
-    catch (e) {
+    } catch (e) {
         log.error(e)
         await ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
     }
