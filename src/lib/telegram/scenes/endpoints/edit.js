@@ -1,9 +1,9 @@
-const { Scenes } = require('telegraf');
-const { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } = require('../../../../constants/Scene');
-const { isMessageNullOrEmpty, sendValidationFailedMessage } = require('../../contextHelper');
-const { addToDate } = require('../../../date');
-const models = require('../../../../models');
-const log = require('../../../log');
+import { Scenes } from 'telegraf';
+import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
+import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
+import { addToDate } from '@lib/date';
+import models from '@/models';
+import log from '@lib/log';
 
 const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 async (context) => {
@@ -13,9 +13,8 @@ async (context) => {
     return context.wizard.next()
 },
 async (context) => {
-    if (isMessageNullOrEmpty(context)) {
+    if (isMessageNullOrEmpty(context))
         return await sendValidationFailedMessage(context, 'expiration')
-    }
 
     if (context.message.text.toLowerCase() === 'never') {
         context.wizard.state.endpoint.expireAt = null
@@ -24,9 +23,8 @@ async (context) => {
 
     const literals = context.message.text.split(' ')
 
-    if (literals.length !== 2) {
+    if (literals.length !== 2)
         return await sendValidationFailedMessage(context, 'expiration')
-    }
 
     try {
         const amount = parseInt(literals[0])
@@ -62,4 +60,4 @@ async function saveEndpoint(context) {
     }
 }
 
-module.exports = editEndpoint
+export default editEndpoint;

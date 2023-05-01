@@ -1,6 +1,4 @@
-const SCENE_NAME_ENDPOINTS = 'endpoints'
-const SCENE_NAME_ADD_ENDPOINT = 'add-endpoint'
-const SCENE_NAME_DELETE_ENDPOINT = 'delete-endpoint'
-const SCENE_NAME_EDIT_ENDPOINT = 'edit-endpoint'
-
-module.exports = { SCENE_NAME_ENDPOINTS, SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_DELETE_ENDPOINT, SCENE_NAME_EDIT_ENDPOINT }
+export const SCENE_NAME_ENDPOINTS = 'endpoints'
+export const SCENE_NAME_ADD_ENDPOINT = 'add-endpoint'
+export const SCENE_NAME_DELETE_ENDPOINT = 'delete-endpoint'
+export const SCENE_NAME_EDIT_ENDPOINT = 'edit-endpoint'

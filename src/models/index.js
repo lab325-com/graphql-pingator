@@ -1,12 +1,12 @@
-const log = require('../lib/log');
-const path = require('path');
-const { Sequelize } = require('sequelize');
-const fs = require('fs');
+import log from '@lib/log';
+import path from 'path';
+import { Sequelize } from 'sequelize';
+import fs from 'fs';
+
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'local';
 const db = {};
-const config = require('../config/sequelizeConfig')[env];
-
+const config = require('@config/sequelizeConfig')[env];
 
 config.logging = message => log.log('query', message);
 

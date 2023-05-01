@@ -1,7 +1,6 @@
-const { TABLE_NAME_ENDPOINTS } = require('../constants/Table');
-const { ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL } = require('../constants/Endpoint');
-const { HTTP_METHOD_GET, HTTP_METHOD_POST } = require('../constants/Http');
-/** @type {import('sequelize-cli').Migration} */
+import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
+import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
+import { TABLE_NAME_ENDPOINTS } from '@constants/Table';
 
 module.exports = {
 	up: async (queryInterface, Sequelize) => {

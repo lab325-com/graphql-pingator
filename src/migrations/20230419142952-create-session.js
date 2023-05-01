@@ -1,7 +1,7 @@
-const { TABLE_NAME_SESSIONS } = require('../constants/Table');
-/** @type {import('sequelize-cli').Migration} */
+import { TABLE_NAME_SESSIONS } from '@constants/Table';
+
 module.exports = {
-	async up(queryInterface, Sequelize) {
+	up: async (queryInterface, Sequelize) =>
 		await queryInterface.createTable(TABLE_NAME_SESSIONS, {
 			id: {
 				type: Sequelize.STRING,
@@ -12,9 +12,6 @@ module.exports = {
 				type: Sequelize.TEXT,
 				allowNull: false
 			}
-		});
-	},
-	async down(queryInterface) {
-		await queryInterface.dropTable(TABLE_NAME_SESSIONS);
-	}
+		}),
+	down: async queryInterface => await queryInterface.dropTable(TABLE_NAME_SESSIONS)
 };

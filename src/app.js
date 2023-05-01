@@ -1,6 +1,8 @@
-require('dotenv').config();
-const bot = require('./lib/telegram/index');
-const log = require('./lib/log');
+import { config } from 'dotenv';
+config();
+
+import bot from '@lib/telegram/index';
+import log from '@lib/log';
 
 bot.launch();
 

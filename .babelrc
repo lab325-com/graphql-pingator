@@ -11,11 +11,7 @@
         "@models": "./src/models",
         "@constants": "./src/constants",
         "@classes": "./src/classes",
-        "@enums": "./src/graphDefinition/enums",
-        "@config": "./src/config",
-        "@media": "./media",
-        "@controllers": "./src/controllers",
-        "@validatorTemplates": "./src/graphDefinition/validatorTemplates"
+        "@config": "./src/config"
       }
     }]
   ]

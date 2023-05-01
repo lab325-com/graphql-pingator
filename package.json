@@ -4,7 +4,6 @@
   "description": "GraphQL Pingator was created to alert users when api is down",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
     "migrate": "npx sequelize-cli db:migrate",
     "undo-last-migration": "npx sequelize-cli db:migrate:undo",
     "undo-migrations": "npx sequelize-cli db:migrate:undo:all",

@@ -1,10 +1,10 @@
-const logger = require('@lab325/log');
-const { CONSOLE_LOGGING_LEVELS } = require('../config/env');
+import logger from '@lab325/log';
+import { CONSOLE_LOGGING_LEVELS } from '@config/env';
 
-const log = logger.default({
-    consoleLoggingLevels: CONSOLE_LOGGING_LEVELS,
-    writeFiles: false
-    // logDir
+const log = logger({
+	consoleLoggingLevels: CONSOLE_LOGGING_LEVELS,
+	writeFiles: false
+	// logDir
 });
 
-module.exports = log;
+export default log;

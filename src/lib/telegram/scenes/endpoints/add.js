@@ -1,182 +1,170 @@
-const { Scenes } = require('telegraf');
-const log = require('../../../log');
-const { ENDPOINT_TYPE_REST, ENDPOINT_TYPE_GRAPHQL } = require('../../../../constants/Endpoint');
-const { isValidHttpUrl, isValidJsonString } = require('../../../validator');
-const { HTTP_METHOD_GET, HTTP_METHOD_POST } = require('../../../../constants/Http');
-const models = require('../../../../models');
-const { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } = require('../../../../constants/Scene');
-const { addToDate } = require('../../../date');
-const { sendValidationFailedMessage, isMessageNullOrEmpty } = require('../../contextHelper');
+import { Scenes } from 'telegraf';
+import log from '@lib/log';
+import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
+import { isValidHttpUrl, isValidJsonString } from '@lib/validator';
+import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
+import models from '@/models';
+import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
+import { addToDate } from '@lib/date';
+import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
 
 const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
-async (context) => {
-    context.wizard.state.endpoint = {}
-    context.wizard.state.canSave = false
+async (ctx) => {
+    ctx.wizard.state.endpoint = {}
+    ctx.wizard.state.canSave = false
 
-    await context.replyWithHTML(`<b>Enter name of your endpoint</b> \n\n📌 if you don't want to add new endpoint you can type /cancel`)
-    return context.wizard.next()
+    await ctx.replyWithHTML(`<b>Enter name of your endpoint</b> \n\n📌 if you don't want to add new endpoint you can type /cancel`)
+    return ctx.wizard.next()
 },
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'name')
-    }
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'name')
 
-    context.wizard.state.endpoint.chatId = context.message.chat.id.toString()
-    context.wizard.state.endpoint.name = context.message.text.trim()
+    ctx.wizard.state.endpoint.chatId = ctx.message.chat.id.toString()
+    ctx.wizard.state.endpoint.name = ctx.message.text.trim()
 
-    await context.replyWithHTML(`<b>Enter type of endpoint.</b> Available types: \n✔️ ${ENDPOINT_TYPE_REST}; \n✔️ ${ENDPOINT_TYPE_GRAPHQL}`)
-    return context.wizard.next()
+    await ctx.replyWithHTML(`<b>Enter type of endpoint.</b> Available types: \n✔️ ${ENDPOINT_TYPE_REST}; \n✔️ ${ENDPOINT_TYPE_GRAPHQL}`)
+    return ctx.wizard.next()
 },
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'type')
-    }
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'type')
 
-    const type = context.message.text.toLowerCase()
-    if (type !== ENDPOINT_TYPE_REST && type !== ENDPOINT_TYPE_GRAPHQL) {
-        return await sendValidationFailedMessage(context, 'type')
-    }
-
-    context.wizard.state.endpoint.type = type
-
-    await context.replyWithHTML(`<b>Enter url of endpoint</b>`)
-    return context.wizard.next()
-},
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'url')
-    }
-
-    const url = context.message.text
-
-    if (!isValidHttpUrl(url)) {
-        return await sendValidationFailedMessage(context, 'url')
-    }
-
-    context.wizard.state.endpoint.url = url
-
-    if (context.wizard.state.endpoint.type === ENDPOINT_TYPE_GRAPHQL) {
-        await context.replyWithHTML(`<b>Enter data/options that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
-        return context.wizard.selectStep(context.wizard.cursor + 3)
-    }
-
-    await context.replyWithHTML(`<b>Enter HTTP Method.</b> Available methods: \n✔️ ${HTTP_METHOD_GET}; \n✔️ ${HTTP_METHOD_POST}`)
-    return context.wizard.next()
-},
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'HTTP Method')
-    }
-
-    const httpMethod = context.message.text.toUpperCase()
-    if (httpMethod !== HTTP_METHOD_GET && httpMethod !== HTTP_METHOD_POST) {
-        return await sendValidationFailedMessage(context, 'HTTP Method')
-    }
-
-    context.wizard.state.endpoint.httpMethod = httpMethod
-
-    await context.replyWithHTML(`<b>Enter success status code of endpoint</b> \ne.g. 200`)
-    return context.wizard.next()
-},
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'success status code')
-    }
-
-    const restSuccessStatus = parseInt(context.message.text)
-    if (isNaN(restSuccessStatus) || restSuccessStatus < 100 || restSuccessStatus > 599) {
-        return await sendValidationFailedMessage(context, 'success status code')
-    }
-
-    context.wizard.state.endpoint.restSuccessStatus = restSuccessStatus
-
-    await context.replyWithHTML(`<b>Enter data/options JSON that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
-    return context.wizard.next()
-},
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'data/options')
-    }
+    const type = ctx.message.text.toLowerCase()
     
-    const data = context.message.text.replaceAll('\n', '')
-    if (!isValidJsonString(data)) {
-        return await sendValidationFailedMessage(context, 'data/options')
-    }
-    
-    context.wizard.state.endpoint.data = data
+    if (type !== ENDPOINT_TYPE_REST && type !== ENDPOINT_TYPE_GRAPHQL)
+        return await sendValidationFailedMessage(ctx, 'type')
 
-    await context.replyWithHTML(`<b>Enter interval in seconds</b>`)
-    return context.wizard.next()
-}, 
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'interval')
-    }
+    ctx.wizard.state.endpoint.type = type
 
-    const interval = parseInt(context.message.text)
-    if (isNaN(interval) || interval < 1 || interval > 2147483647) {
-        return await sendValidationFailedMessage(context, 'interval')
-    }
-
-    context.wizard.state.endpoint.interval = interval
-    context.wizard.state.canSave = true
-
-    await context.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> or click just /save and it won't expire`)
-    return context.wizard.next()
+    await ctx.replyWithHTML(`<b>Enter url of endpoint</b>`)
+    return ctx.wizard.next()
 },
-async (context) => {
-    if (isMessageNullOrEmpty(context)) {
-        return await sendValidationFailedMessage(context, 'expiration')
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'url')
+
+    const url = ctx.message.text
+
+    if (!isValidHttpUrl(url))
+        return await sendValidationFailedMessage(ctx, 'url')
+
+    ctx.wizard.state.endpoint.url = url
+
+    if (ctx.wizard.state.endpoint.type === ENDPOINT_TYPE_GRAPHQL) {
+        await ctx.replyWithHTML(`<b>Enter data/options that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
+        return ctx.wizard.selectStep(ctx.wizard.cursor + 3)
     }
 
-    if (context.message.text.toLowerCase() === 'never') {
-        return await createEndpoint(context)
-    }
+    await ctx.replyWithHTML(`<b>Enter HTTP Method.</b> Available methods: \n✔️ ${HTTP_METHOD_GET}; \n✔️ ${HTTP_METHOD_POST}`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'HTTP Method')
 
-    const literals = context.message.text.split(' ')
+    const httpMethod = ctx.message.text.toUpperCase()
+    
+    if (httpMethod !== HTTP_METHOD_GET && httpMethod !== HTTP_METHOD_POST)
+        return await sendValidationFailedMessage(ctx, 'HTTP Method')
 
-    if (literals.length !== 2) {
-        return await sendValidationFailedMessage(context, 'expiration')
-    }
+    ctx.wizard.state.endpoint.httpMethod = httpMethod
+
+    await ctx.replyWithHTML(`<b>Enter success status code of endpoint</b> \ne.g. 200`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'success status code')
+
+    const restSuccessStatus = parseInt(ctx.message.text)
+    if (isNaN(restSuccessStatus) || restSuccessStatus < 100 || restSuccessStatus > 599)
+        return await sendValidationFailedMessage(ctx, 'success status code')
+
+    ctx.wizard.state.endpoint.restSuccessStatus = restSuccessStatus
+
+    await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'data/options')
+    
+    const data = ctx.message.text.replaceAll('\n', '')
+    
+    if (!isValidJsonString(data))
+        return await sendValidationFailedMessage(ctx, 'data/options')
+    
+    ctx.wizard.state.endpoint.data = data
+
+    await ctx.replyWithHTML(`<b>Enter interval in seconds</b>`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'interval')
+
+    const interval = parseInt(ctx.message.text)
+    if (isNaN(interval) || interval < 1 || interval > 2147483647)
+        return await sendValidationFailedMessage(ctx, 'interval')
+
+    ctx.wizard.state.endpoint.interval = interval
+    ctx.wizard.state.canSave = true
+
+    await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> or click just /save and it won't expire`)
+    return ctx.wizard.next()
+},
+async (ctx) => {
+    if (isMessageNullOrEmpty(ctx))
+        return await sendValidationFailedMessage(ctx, 'expiration')
+
+    if (ctx.message.text.toLowerCase() === 'never')
+        return await createEndpoint(ctx)
+
+    const literals = ctx.message.text.split(' ')
+
+    if (literals.length !== 2)
+        return await sendValidationFailedMessage(ctx, 'expiration')
 
     try {
         const amount = parseInt(literals[0])
         const unit = literals[1]
 
         if (isNaN(amount) || amount < 1)
-            return await sendValidationFailedMessage(context, 'expiration')
+            return await sendValidationFailedMessage(ctx, 'expiration')
 
-        context.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit)
-    } catch (e) {
-        return await sendValidationFailedMessage(context, 'expiration')
+        ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit)
+    }
+    catch (e) {
+        return await sendValidationFailedMessage(ctx, 'expiration')
     }
 
-    await createEndpoint(context)
+    await createEndpoint(ctx)
 })
 
-addEndpoint.command('cancel', async (context) => {
-    delete context.wizard.state.endpoint
-    await context.scene.enter(SCENE_NAME_ENDPOINTS)
+addEndpoint.command('cancel', async (ctx) => {
+    delete ctx.wizard.state.endpoint
+    await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
 })
 
-addEndpoint.command('save', async (context) => {
-    if (context.wizard.state.canSave === true) {
-        await createEndpoint(context)
-    }
+addEndpoint.command('save', async (ctx) => {
+    if (ctx.wizard.state.canSave === true)
+        await createEndpoint(ctx)
 })
 
-async function createEndpoint(context) {
+async function createEndpoint(ctx) {
     try {
-        await models.Endpoint.create(context.wizard.state.endpoint)
+        await models.Endpoint.create(ctx.wizard.state.endpoint)
 
-        await context.replyWithHTML(`✅ New endpoint was created!`)
+        await ctx.replyWithHTML(`✅ New endpoint was created!`)
 
-        delete context.wizard.state.endpoint
-        return await context.scene.enter(SCENE_NAME_ENDPOINTS)
-    } catch (e) {
+        delete ctx.wizard.state.endpoint
+        return await ctx.scene.enter(SCENE_NAME_ENDPOINTS)
+    }
+    catch (e) {
         log.error(e)
-        await context.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
+        await ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`)
     }
 }
 
-module.exports = addEndpoint
+export default addEndpoint;

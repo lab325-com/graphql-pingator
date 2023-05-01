@@ -1,28 +1,32 @@
-const { Scenes, Markup } = require('telegraf');
-const models = require('../../../../models');
-const { fmt, bold } = require('telegraf/format');
-const {
-	SCENE_NAME_ENDPOINTS,
+import { Scenes } from 'telegraf';
+import { bold, fmt } from 'telegraf/format';
+import models from '@/models';
+import {
 	SCENE_NAME_ADD_ENDPOINT,
 	SCENE_NAME_DELETE_ENDPOINT,
-	SCENE_NAME_EDIT_ENDPOINT
-} = require('../../../../constants/Scene');
-const { getHumanReadableDateDifference } = require('../../../date');
-const { ENDPOINT_TYPE_REST } = require('../../../../constants/Endpoint');
+	SCENE_NAME_EDIT_ENDPOINT,
+	SCENE_NAME_ENDPOINTS
+} from '@constants/Scene';
+import { getSelectedEndpointRepresentationText } from '@lib/endpoint';
+import { createPaginationKeyboard, nextPageButton, pageButton, prevPageButton } from '@lib/telegram/pagination';
+import { isLaterThanNow } from '@lib/date';
+import { getCallbackDataParts, isCallbackDataEqual } from '@lib/telegram/callbackQuery';
+import { sendLoadingMessage } from '@lib/telegram/message';
 
 const endpointsPerPage = 5;
 
-const prevPageButton = 'prevPage';
-const nextPageButton = 'nextPage';
-const pageButton = 'page';
-
-const callbackDataSeparator = '__';
-
-function callbackData(id, data) {
-	return id + callbackDataSeparator + data;
+const endpointDisplaySelector = endpoint => {
+	let buttonText = `${endpoint.name} (${endpoint.type})`;
+	
+	if (endpoint.expireAt === null)
+		buttonText += ' ♾️';
+	else if (isLaterThanNow(new Date(endpoint.expireAt)))
+		buttonText += ' ⌛';
+	
+	return buttonText
 }
 
-async function getInlineEndpointsKeyboard(chatId, sceneEnteredAt, page) {
+async function getInlineEndpointsKeyboard(chatId, sceneId, page) {
 	if (!page)
 		page = 0;
 	
@@ -35,28 +39,8 @@ async function getInlineEndpointsKeyboard(chatId, sceneEnteredAt, page) {
 		offset: page * endpointsPerPage
 	});
 	
-	const buttons = [];
-	for (const endpoint of rows) {
-		let buttonText = `${endpoint.name} (${endpoint.type})`;
-		
-		if (endpoint.expireAt === null)
-			buttonText += ' ♾️';
-		else if (new Date().getTime() >= new Date(endpoint.expireAt).getTime())
-			buttonText += ' ⌛';
-		
-		buttons.push([Markup.button.callback(buttonText, callbackData(sceneEnteredAt, endpoint.id))]);
-	}
-	
 	const maxPage = Math.ceil(count / endpointsPerPage);
-	
-	buttons.push([
-		Markup.button.callback(`⬅️`, callbackData(sceneEnteredAt, prevPageButton)),
-		Markup.button.callback(`page ${page + 1}/${maxPage}`, pageButton),
-		Markup.button.callback(`➡️`, callbackData(sceneEnteredAt, nextPageButton))
-	]);
-	
-	const keyboard = Markup.inlineKeyboard(buttons);
-	
+	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, maxPage, sceneId)
 	return { keyboard, rows, count, maxPage };
 }
 
@@ -66,35 +50,30 @@ endpoints.enter(async (context) => {
 	delete context.scene.state.maxPage;
 	delete context.scene.state.page;
 	
-	context.scene.state.enteredAt = new Date().getTime()
-		.toString();
+	context.scene.state.id = new Date().getTime()
+.toString();
 	
-	const message = await context.replyWithHTML('Loading...');
-	
-	const timeout = setTimeout(async () => {
-		await context.telegram.editMessageText(message.chat.id, message.message_id, null, 'Still loading...');
-	}, 1000);
+	const { cancelLoading,
+		message } = await sendLoadingMessage(context);
 	
 	const {
 		keyboard,
 		count,
 		maxPage
-	} = await getInlineEndpointsKeyboard(context.message.chat.id.toString(), context.scene.state.enteredAt);
+	} = await getInlineEndpointsKeyboard(context.message.chat.id.toString(), context.scene.state.id);
 	
 	context.scene.state.maxPage = maxPage;
 	
-	clearTimeout(timeout);
+	cancelLoading();
 	
-	if (count === 0) {
+	if (count === 0)
 		await context.telegram.editMessageText(message.chat.id, message.message_id, null, fmt`You have ${bold('0')} endpoints\n\n📌 To add new endpoint click /add`);
-	} else {
+	else
 		await context.telegram.editMessageText(message.chat.id, message.message_id, null, fmt`${bold(`List of Endpoints (${count})`)}\n\n📌 To add new endpoint click /add \n📌 Toggle any endpoint to see its details and then edit or delete it`, keyboard);
-	}
 });
 
-endpoints.command('add', async (context) => {
-	await context.scene.enter(SCENE_NAME_ADD_ENDPOINT);
-});
+endpoints.command('add', async (context) =>
+	await context.scene.enter(SCENE_NAME_ADD_ENDPOINT));
 
 endpoints.command('delete', async (context) => {
 	if (!context.scene.state.selectedEndpoint) return;
@@ -109,73 +88,55 @@ endpoints.command('edit', async (context) => {
 });
 
 endpoints.on('callback_query', async (context) => {
+	const currentSceneId = context.scene.state.id.toString()
+	const callbackData = context.callbackQuery.data
+	const chatId = context.callbackQuery.message.chat.id
+	
 	if (!context.scene.state.page)
 		context.scene.state.page = 0;
 	
-	if (context.callbackQuery.data === callbackData(context.scene.state.enteredAt, prevPageButton)) {
+	if (isCallbackDataEqual(currentSceneId, prevPageButton, callbackData)) {
 		if (context.scene.state.page > 0) {
 			context.scene.state.page--;
-			const { keyboard } = await getInlineEndpointsKeyboard(context.callbackQuery.message.chat.id.toString(), context.scene.state.enteredAt, context.scene.state.page);
+			
+			const { keyboard } = await getInlineEndpointsKeyboard(chatId.toString(), currentSceneId, context.scene.state.page);
 			await context.editMessageReplyMarkup(keyboard.reply_markup);
 		}
 		
 		return await context.answerCbQuery();
-	} else if (context.callbackQuery.data === callbackData(context.scene.state.enteredAt, nextPageButton)) {
+	} else if (isCallbackDataEqual(currentSceneId, nextPageButton, callbackData)) {
 		if (context.scene.state.page + 1 < context.scene.state.maxPage) {
 			context.scene.state.page++;
-			const { keyboard } = await getInlineEndpointsKeyboard(context.callbackQuery.message.chat.id.toString(), context.scene.state.enteredAt, context.scene.state.page);
+			
+			const { keyboard } = await getInlineEndpointsKeyboard(chatId.toString(), currentSceneId, context.scene.state.page);
 			await context.editMessageReplyMarkup(keyboard.reply_markup);
 		}
 		
 		return await context.answerCbQuery();
-	} else if (context.callbackQuery.data === pageButton) {
+	} else if (callbackData === pageButton) {
 		return await context.answerCbQuery();
 	}
 	
-	const literals = String(context.callbackQuery.data).split('__');
-	const sceneEnteredAt = literals[0];
+	const { sceneId, data } = getCallbackDataParts(callbackData);
 	
-	if (sceneEnteredAt !== String(context.scene.state.enteredAt))
+	if (sceneId !== currentSceneId)
 		return await context.answerCbQuery();
 	
-	const endpointId = literals[1];
-	
-	if (context.scene.state.selectedEndpoint && context.scene.state.selectedEndpoint.id === endpointId)
+	if (context.scene.state.selectedEndpoint && context.scene.state.selectedEndpoint.id === data)
 		return await context.answerCbQuery();
 	
-	const endpoint = await models.Endpoint.findByPk(endpointId, { where: { chatId: context.callbackQuery.message.chat.id.toString() } });
+	const endpoint = await models.Endpoint.findByPk(data, { where: { chatId: chatId.toString() } });
 	
 	context.scene.state.selectedEndpoint = endpoint;
 	
 	if (context.scene.state.selectedEndpointMessageId)
-		await context.telegram.deleteMessage(context.callbackQuery.message.chat.id, context.scene.state.selectedEndpointMessageId);
+		await context.telegram.deleteMessage(chatId, context.scene.state.selectedEndpointMessageId);
 	
-	
-	let endpointsRepresentation = `✅ Selected endpoint <b>${endpoint.name}</b>\n`;
-	
-	if (endpoint.expireAt === null)
-		endpointsRepresentation += `never expires ♾️\n`;
-	else if (new Date().getTime() < new Date(endpoint.expireAt).getTime())
-		endpointsRepresentation += `expires in: ${getHumanReadableDateDifference(new Date(), endpoint.expireAt)}\n`;
-	else
-		endpointsRepresentation += `already expired ⌛\n`;
-	
-	endpointsRepresentation += `url: ${endpoint.url}\n`;
-	endpointsRepresentation += `type: ${endpoint.type}\n`;
-	endpointsRepresentation += `data: ${endpoint.data}\n`;
-	
-	if (endpoint.type === ENDPOINT_TYPE_REST) {
-		endpointsRepresentation += `http method: ${endpoint.httpMethod}\n`;
-		endpointsRepresentation += `rest success status: ${endpoint.restSuccessStatus}\n`;
-	}
-	
-	endpointsRepresentation += `\n📌 Click /delete or /edit`;
-	
-	const message = await context.replyWithHTML(endpointsRepresentation);
+	const message = await context.replyWithHTML(getSelectedEndpointRepresentationText(endpoint));
 	
 	context.scene.state.selectedEndpointMessageId = message.message_id;
 	
 	await context.answerCbQuery();
 });
 
-module.exports = endpoints;
+export default endpoints;

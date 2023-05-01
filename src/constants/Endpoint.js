@@ -1,4 +1,2 @@
-const ENDPOINT_TYPE_REST = 'rest'
-const ENDPOINT_TYPE_GRAPHQL = 'graphql'
-
-module.exports = { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST }
+export const ENDPOINT_TYPE_REST = 'rest'
+export const ENDPOINT_TYPE_GRAPHQL = 'graphql'

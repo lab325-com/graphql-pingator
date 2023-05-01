@@ -1,20 +1,18 @@
-const ExtendedModel = require('../classes/ExtendedModel')
-const { TABLE_NAME_SESSIONS } = require('../constants/Table');
+import ExtendedModel from '@classes/ExtendedModel';
+import { TABLE_NAME_SESSIONS } from '@constants/Table';
 
 module.exports = (sequelize, DataTypes) => {
-    class Session extends ExtendedModel {
-        /* static associate(models) {
-
-        } */
-    }
-
-    Session.init({
-        session: DataTypes.TEXT
-    }, {
-        sequelize,
-        modelName: 'Session',
-        tableName: TABLE_NAME_SESSIONS
-    });
-
-    return Session;
+	class Session extends ExtendedModel {
+	
+	}
+	
+	Session.init({
+		session: DataTypes.TEXT
+	}, {
+		sequelize,
+		modelName: 'Session',
+		tableName: TABLE_NAME_SESSIONS
+	});
+	
+	return Session;
 };

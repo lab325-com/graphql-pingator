@@ -1,17 +1,16 @@
-require('dotenv').config()
+import { config } from 'dotenv';
+config()
 
-const {
-    DEV_TELEGRAM_BOT_API_TOKEN
-} = process.env;
+import {
+    TELEGRAM_BOT_API_TOKEN,
+} from '@config/env';
 
-module.exports = {
-    local: {
-        token: DEV_TELEGRAM_BOT_API_TOKEN
-    },
-    development: {
-        token: DEV_TELEGRAM_BOT_API_TOKEN
-    },
-    production: {
-        token: DEV_TELEGRAM_BOT_API_TOKEN
-    }
+const tgConfig = {
+    token: TELEGRAM_BOT_API_TOKEN
+}
+
+export default {
+    local: tgConfig,
+    development: tgConfig,
+    production: tgConfig
 };

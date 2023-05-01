@@ -1,6 +1,6 @@
-const { Scenes } = require('telegraf');
-const { SCENE_NAME_DELETE_ENDPOINT, SCENE_NAME_ENDPOINTS } = require('../../../../constants/Scene');
-const models = require('../../../../models');
+import { Scenes } from 'telegraf';
+import { SCENE_NAME_DELETE_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
+import models from '@/models';
 
 const deleteEndpoint = new Scenes.BaseScene(SCENE_NAME_DELETE_ENDPOINT);
 
@@ -19,8 +19,7 @@ deleteEndpoint.command('yes', async (context) => {
 	return context.scene.enter(SCENE_NAME_ENDPOINTS);
 });
 
-deleteEndpoint.command('no', async (context) => {
-	return context.scene.enter(SCENE_NAME_ENDPOINTS);
-});
+deleteEndpoint.command('no', async (context) =>
+	context.scene.enter(SCENE_NAME_ENDPOINTS))
 
-module.exports = deleteEndpoint;
+export default deleteEndpoint;
