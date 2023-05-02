@@ -10,8 +10,8 @@ import deleteEndpoint from './scenes/endpoints/delete';
 import editEndpoint from './scenes/endpoints/edit';
 import { SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 
-import telegramConfigs from '../../config/telegramConfig';
-import sequelizeConfigs from '../../config/sequelizeConfig';
+import telegramConfigs from '@config/telegramConfig';
+import sequelizeConfigs from '@config/sequelizeConfig';
 
 const env = process.env.NODE_ENV || 'development';
 const sequelizeConfig = sequelizeConfigs[env];
@@ -50,9 +50,8 @@ bot.command('help', async (context) => {
 bot.command('endpoints', async (context) =>
 	await context.scene.enter(SCENE_NAME_ENDPOINTS));
 
-const sendGreetingMessage = async (context) => {
-	await context.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥\n\nType /endpoints and start working with me.');
-};
+const sendGreetingMessage = async (context) =>
+	await context.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥\n\nClick /endpoints and start working with me.');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));

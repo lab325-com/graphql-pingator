@@ -20,6 +20,6 @@ deleteEndpoint.command('yes', async (context) => {
 });
 
 deleteEndpoint.command('no', async (context) =>
-	context.scene.enter(SCENE_NAME_ENDPOINTS))
+	context.scene.enter(SCENE_NAME_ENDPOINTS));
 
 export default deleteEndpoint;

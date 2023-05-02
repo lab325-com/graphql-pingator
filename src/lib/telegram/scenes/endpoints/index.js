@@ -32,10 +32,7 @@ const endpointDisplaySelector = endpoint => {
 	return buttonText
 }
 
-async function getInlineEndpointsKeyboard(chatId, sceneId, page) {
-	if (!page)
-		page = 0;
-	
+async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	const { count, rows } = await models.Endpoint.findAndCountAll({
 		attributes: ['id', 'name', 'type', 'expireAt'],
 		where: {
@@ -45,15 +42,15 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page) {
 		offset: page * endpointsPerPage
 	});
 	
-	const maxPage = getPagesCount(count, endpointsPerPage);
-	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, maxPage, sceneId)
-	return { keyboard, rows, count, maxPage };
+	const pagesCount = getPagesCount(count, endpointsPerPage);
+	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, pagesCount, sceneId)
+	return { keyboard, rows, count, pagesCount };
 }
 
 const endpoints = new Scenes.BaseScene(SCENE_NAME_ENDPOINTS);
 
 endpoints.enter(async (context) => {
-	delete context.scene.state.maxPage;
+	delete context.scene.state.pagesCount;
 	delete context.scene.state.page;
 	
 	context.scene.state.id = new Date().getTime()
@@ -65,10 +62,10 @@ endpoints.enter(async (context) => {
 	const {
 		keyboard,
 		count,
-		maxPage
+		pagesCount
 	} = await getInlineEndpointsKeyboard(context.message.chat.id.toString(), context.scene.state.id);
 	
-	context.scene.state.maxPage = maxPage;
+	context.scene.state.pagesCount = pagesCount;
 	
 	cancelLoading();
 	
@@ -111,7 +108,7 @@ endpoints.on('callback_query', async (context) => {
 		
 		return await context.answerCbQuery();
 	} else if (isCallbackDataEqual(currentSceneId, nextPageButton, callbackData)) {
-		if (context.scene.state.page + 1 < context.scene.state.maxPage) {
+		if (context.scene.state.page + 1 < context.scene.state.pagesCount) {
 			context.scene.state.page++;
 			
 			const { keyboard } = await getInlineEndpointsKeyboard(chatId.toString(), currentSceneId, context.scene.state.page);

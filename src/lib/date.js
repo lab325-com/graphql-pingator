@@ -1,4 +1,4 @@
-export function addToDate(sourceDate, number, unit) {
+export const addToDate = (sourceDate, number, unit) => {
 	// Create a new date object to avoid modifying the sourceDate directly
 	const newDate = new Date(sourceDate);
 	
@@ -7,35 +7,33 @@ export function addToDate(sourceDate, number, unit) {
 	
 	// Normalize the unit to lowercase and singular form
 	unit = unit.toLowerCase().trim();
-	if (unit.endsWith('s')) {
+	if (unit.endsWith('s'))
 		unit = unit.slice(0, -1);
-	}
 	
 	// Check the unit and perform the appropriate calculation
-	if (unit === 'second') {
+	if (unit === 'second') 
 		newDate.setTime(newDate.getTime() + (parsedNumber * 1000));
-	} else if (unit === 'minute') {
+  else if (unit === 'minute')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 1000));
-	} else if (unit === 'hour') {
+	else if (unit === 'hour')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 60 * 1000));
-	} else if (unit === 'day') {
+	else if (unit === 'day')
 		newDate.setDate(newDate.getDate() + parsedNumber);
-	} else if (unit === 'week') {
+	else if (unit === 'week')
 		newDate.setDate(newDate.getDate() + (parsedNumber * 7));
-	} else if (unit === 'month') {
+	else if (unit === 'month')
 		newDate.setMonth(newDate.getMonth() + parsedNumber);
-	} else if (unit === 'quarter') {
+	else if (unit === 'quarter')
 		newDate.setMonth(newDate.getMonth() + (parsedNumber * 3));
-	} else if (unit === 'year') {
+	else if (unit === 'year')
 		newDate.setFullYear(newDate.getFullYear() + parsedNumber);
-	} else {
+	else
 		throw new Error('Invalid unit specified. Unit must be one of \'day\', \'hour\', \'minute\', \'second\', \'week\', \'month\', \'quarter\', or \'year\'.');
-	}
 	
 	return newDate;
 }
 
-export function getHumanReadableDateDifference(startDate, endDate) {
+export const getHumanReadableDateDifference = (startDate, endDate) => {
 	// Calculate the time difference in milliseconds
 	let timeDifference = Math.abs(endDate - startDate);
 	

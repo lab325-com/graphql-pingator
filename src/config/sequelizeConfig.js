@@ -9,7 +9,7 @@ import {
   POSTGRES_PORT
 } from '@config/env'
 
-const pgConfig = {
+const sequelizeConfig = {
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
   database: POSTGRES_DB,
@@ -19,7 +19,7 @@ const pgConfig = {
 }
 
 module.exports = {
-    local: pgConfig,
-    development: pgConfig,
-    production: pgConfig
+    local: sequelizeConfig,
+    development: sequelizeConfig,
+    production: sequelizeConfig
 };
