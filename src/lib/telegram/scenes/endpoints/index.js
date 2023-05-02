@@ -29,8 +29,8 @@ const endpointDisplaySelector = endpoint => {
 	else if (!isLaterThanNow(new Date(endpoint.expireAt)))
 		buttonText += ' ⌛';
 	
-	return buttonText
-}
+	return buttonText;
+};
 
 async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	const { count, rows } = await models.Endpoint.findAndCountAll({
@@ -43,7 +43,7 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	});
 	
 	const pagesCount = getPagesCount(count, endpointsPerPage);
-	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, pagesCount, sceneId)
+	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, pagesCount, sceneId);
 	return { keyboard, rows, count, pagesCount };
 }
 
@@ -54,10 +54,12 @@ endpoints.enter(async (context) => {
 	delete context.scene.state.page;
 	
 	context.scene.state.id = new Date().getTime()
-.toString();
+		.toString();
 	
-	const { cancelLoading,
-		message } = await sendLoadingMessage(context);
+	const {
+		cancelLoading,
+		message
+	} = await sendLoadingMessage(context);
 	
 	const {
 		keyboard,
@@ -91,9 +93,9 @@ endpoints.command('edit', async (context) => {
 });
 
 endpoints.on('callback_query', async (context) => {
-	const currentSceneId = context.scene.state.id.toString()
-	const callbackData = context.callbackQuery.data
-	const chatId = context.callbackQuery.message.chat.id
+	const currentSceneId = context.scene.state.id.toString();
+	const callbackData = context.callbackQuery.data;
+	const chatId = context.callbackQuery.message.chat.id;
 	
 	if (!context.scene.state.page)
 		context.scene.state.page = 0;

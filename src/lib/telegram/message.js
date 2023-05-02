@@ -8,9 +8,9 @@ export const sendLoadingMessage = async (context) => {
 	
 	const timeout = setTimeout(async () => {
 		await context.telegram.editMessageText(message.chat.id, message.message_id, null, 'Still loading...');
-	}, 1000)
+	}, 1000);
 	
 	const cancelLoading = () => clearTimeout(timeout);
 	
-	return { cancelLoading, message }
-}
+	return { cancelLoading, message };
+};

@@ -22,5 +22,5 @@ export const getSelectedEndpointRepresentationText = endpoint => {
 	
 	endpointsRepresentation += `\n📌 Click /delete or /edit`;
 	
-	return endpointsRepresentation
-}
+	return endpointsRepresentation;
+};

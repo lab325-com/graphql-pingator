@@ -11,9 +11,9 @@ export const addToDate = (sourceDate, number, unit) => {
 		unit = unit.slice(0, -1);
 	
 	// Check the unit and perform the appropriate calculation
-	if (unit === 'second') 
+	if (unit === 'second')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 1000));
-  else if (unit === 'minute')
+	else if (unit === 'minute')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 1000));
 	else if (unit === 'hour')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 60 * 1000));
@@ -31,7 +31,7 @@ export const addToDate = (sourceDate, number, unit) => {
 		throw new Error('Invalid unit specified. Unit must be one of \'day\', \'hour\', \'minute\', \'second\', \'week\', \'month\', \'quarter\', or \'year\'.');
 	
 	return newDate;
-}
+};
 
 export const getHumanReadableDateDifference = (startDate, endDate) => {
 	// Calculate the time difference in milliseconds
@@ -63,8 +63,8 @@ export const getHumanReadableDateDifference = (startDate, endDate) => {
 	
 	// Join the time components into a string
 	return timeComponents.join(', ');
-}
+};
 
-export const isLaterThanNow = date => isLaterThan(date, new Date())
+export const isLaterThanNow = date => isLaterThan(date, new Date());
 
-export const isLaterThan = (date, comparableDate) => date.getTime() > comparableDate.getTime()
+export const isLaterThan = (date, comparableDate) => date.getTime() > comparableDate.getTime();

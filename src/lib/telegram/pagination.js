@@ -5,7 +5,7 @@ export const prevPageButton = 'prevPage';
 export const nextPageButton = 'nextPage';
 export const pageButton = 'page';
 
-export const getPagesCount = (itemsCount, itemsPerPage) => Math.ceil(itemsCount / itemsPerPage)
+export const getPagesCount = (itemsCount, itemsPerPage) => Math.ceil(itemsCount / itemsPerPage);
 
 export const createPaginationKeyboard = (items, displaySelector, callbackDataSelector, currentPage, pagesCount, sceneId) => {
 	if (!currentPage)
@@ -13,8 +13,8 @@ export const createPaginationKeyboard = (items, displaySelector, callbackDataSel
 	
 	const buttons = [];
 	for (const item of items) {
-		const buttonText = displaySelector(item)
-		const itemId = callbackDataSelector(item)
+		const buttonText = displaySelector(item);
+		const itemId = callbackDataSelector(item);
 		buttons.push([
 			Markup.button.callback(buttonText, callbackData(sceneId, itemId))
 		]);
@@ -27,4 +27,4 @@ export const createPaginationKeyboard = (items, displaySelector, callbackDataSel
 	]);
 	
 	return Markup.inlineKeyboard(buttons);
-}
+};

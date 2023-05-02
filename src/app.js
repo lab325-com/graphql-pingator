@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
+
 config();
 
 import bot from '@lib/telegram/index';
