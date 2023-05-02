@@ -5,6 +5,8 @@ export const prevPageButton = 'prevPage';
 export const nextPageButton = 'nextPage';
 export const pageButton = 'page';
 
+export const getPagesCount = (itemsCount, itemsPerPage) => Math.ceil(itemsCount / itemsPerPage)
+
 export const createPaginationKeyboard = (items, displaySelector, callbackDataSelector, currentPage, pagesCount, sceneId) => {
 	if (!currentPage)
 		currentPage = 0;

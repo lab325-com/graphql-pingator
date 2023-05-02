@@ -1,7 +1,5 @@
 export const isValidHttpUrl = (string) => {
-	const httpUrlPattern = /^http:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[-a-zA-Z0-9()@:%_+.~#?&//=]*)?$/;
-	
-	return httpUrlPattern.test(string);
+	return (/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm).test(string)
 }
 
 export const isValidJsonString = (str) => {

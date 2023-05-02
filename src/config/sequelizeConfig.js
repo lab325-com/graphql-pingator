@@ -20,9 +20,6 @@ const pgConfig = {
 
 module.exports = {
     local: pgConfig,
-    development: {
-        ssl: false,
-        ...pgConfig
-    },
+    development: pgConfig,
     production: pgConfig
 };

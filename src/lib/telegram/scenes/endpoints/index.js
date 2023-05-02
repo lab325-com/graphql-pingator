@@ -8,7 +8,13 @@ import {
 	SCENE_NAME_ENDPOINTS
 } from '@constants/Scene';
 import { getSelectedEndpointRepresentationText } from '@lib/endpoint';
-import { createPaginationKeyboard, nextPageButton, pageButton, prevPageButton } from '@lib/telegram/pagination';
+import {
+	createPaginationKeyboard,
+	getPagesCount,
+	nextPageButton,
+	pageButton,
+	prevPageButton
+} from '@lib/telegram/pagination';
 import { isLaterThanNow } from '@lib/date';
 import { getCallbackDataParts, isCallbackDataEqual } from '@lib/telegram/callbackQuery';
 import { sendLoadingMessage } from '@lib/telegram/message';
@@ -20,7 +26,7 @@ const endpointDisplaySelector = endpoint => {
 	
 	if (endpoint.expireAt === null)
 		buttonText += ' ♾️';
-	else if (isLaterThanNow(new Date(endpoint.expireAt)))
+	else if (!isLaterThanNow(new Date(endpoint.expireAt)))
 		buttonText += ' ⌛';
 	
 	return buttonText
@@ -39,7 +45,7 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page) {
 		offset: page * endpointsPerPage
 	});
 	
-	const maxPage = Math.ceil(count / endpointsPerPage);
+	const maxPage = getPagesCount(count, endpointsPerPage);
 	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, maxPage, sceneId)
 	return { keyboard, rows, count, maxPage };
 }

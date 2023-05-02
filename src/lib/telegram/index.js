@@ -19,7 +19,10 @@ const telegramConfig = telegramConfigs[env];
 
 const bot = new Telegraf(telegramConfig.token);
 
-bot.use((new PostgresSession(sequelizeConfig)).middleware());
+bot.use((new PostgresSession({
+	user: sequelizeConfig.username,
+	...sequelizeConfig
+})).middleware());
 
 const stage = new Scenes.Stage([
 	endpoints,
