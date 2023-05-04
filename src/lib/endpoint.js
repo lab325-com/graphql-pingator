@@ -14,6 +14,7 @@ export const getSelectedEndpointRepresentationText = endpoint => {
 	endpointsRepresentation += `url: ${endpoint.url}\n`;
 	endpointsRepresentation += `type: ${endpoint.type}\n`;
 	endpointsRepresentation += `data: ${endpoint.data}\n`;
+	endpointsRepresentation += `interval: ${endpoint.interval} seconds\n`;
 	
 	if (endpoint.type === ENDPOINT_TYPE_REST) {
 		endpointsRepresentation += `http method: ${endpoint.httpMethod}\n`;
