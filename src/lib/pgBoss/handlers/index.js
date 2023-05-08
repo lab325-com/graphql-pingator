@@ -13,28 +13,26 @@ const endpointExpirationAlertHandler = async job => {
 };
 
 const endpointHandler = async job => {
-	try {
-		const endpoint = await models.Endpoint.findByPk(job.data.endpointId);
-		
-		if (!endpoint) {
-			log.info(`${job.data.endpointId} doesn't exist anymore`);
-			await pgBoss.complete(job.id);
-			return;
-		}
-		
-		if (endpoint.expireAt && !isLaterThanNow(new Date(endpoint.expireAt))) {
-			log.info(`${endpoint.name} is expired`);
-			await pgBoss.complete(job.id);
-			return;
-		}
-		
-		// hit the api ...
-		
-		const startAfter = addToDate(new Date(), endpoint.interval, 'seconds');
-		await pgBoss.send(job.name, job.data, { startAfter });
-	} catch (e) {
-		log.error(e);
+	const endpoint = await models.Endpoint.findByPk(job.data.endpointId);
+	
+	if (!endpoint) {
+		log.info(`Cannot check endpoint ${job.data.endpointId} because it doesn't exist anymore`);
+		runningEndpointChecks.splice(runningEndpointChecks.indexOf(endpoint.id), 1);
+		await pgBoss.complete(job.id);
+		return;
 	}
+	
+	if (endpoint.expireAt && !isLaterThanNow(new Date(endpoint.expireAt))) {
+		log.info(`Cannot check endpoint ${endpoint.name} because it is expired`);
+		runningEndpointChecks.splice(runningEndpointChecks.indexOf(endpoint.id), 1);
+		await pgBoss.complete(job.id);
+		return;
+	}
+	
+	await bot.telegram.sendMessage(endpoint.chatId, fmt`check was performed`);
+	
+	const startAfter = addToDate(new Date(), endpoint.interval, 'seconds');
+	await pgBoss.send(job.name, job.data, { startAfter });
 	
 	await pgBoss.complete(job.id);
 };
@@ -47,6 +45,14 @@ const endpointQueueName = endpointId => `endpoint_${endpointId}`;
 const endpointExpirationAlertQueueName = endpointId => `${endpointQueueName(endpointId)}_expiration_alert`;
 
 const expirationAlertJobs = {};
+const runningEndpointChecks = [];
+
+const startCheckingEndpoint = async (endpointId) => {
+	runningEndpointChecks.push(endpointId);
+	const queueName = endpointQueueName(endpointId);
+	await pgBoss.work(queueName, workerOptions, endpointHandler);
+	await pgBoss.send(queueName, { endpointId: endpointId }, {});
+}
 
 export const pgBossStartHandling = async () => {
 	await pgBoss.deleteAllQueues();
@@ -67,9 +73,7 @@ export const pgBossStartHandling = async () => {
 	});
 	
 	for (const endpoint of endpoints) {
-		const queueName = endpointQueueName(endpoint.id);
-		await pgBoss.work(queueName, workerOptions, endpointHandler);
-		await pgBoss.send(queueName, { endpointId: endpoint.id }, {});
+		await startCheckingEndpoint(endpoint.id);
 		
 		if (endpoint.expireAt) {
 			const expirationQueueName = endpointExpirationAlertQueueName(endpoint.id);
@@ -82,12 +86,19 @@ export const pgBossStartHandling = async () => {
 	log.info(`Sent ${endpoints.length} jobs`);
 };
 
-export const editExpirationAlertJob = async (endpointId, expireAt) => {
+export const setEndpointExpirationAlertJob = async (endpointId, expireAt) => {
 	const jobId = expirationAlertJobs[endpointId];
 	
-	if (jobId) {
+	if (jobId)
 		await pgBoss.cancel(jobId);
-	}
+	
+	if (!expireAt)
+		return;
+	
+	const isRunning = runningEndpointChecks.includes(endpointId);
+	
+	if (!isRunning)
+		await startCheckingEndpoint(endpointId);
 	
 	const queueName = endpointExpirationAlertQueueName(endpointId);
 	
