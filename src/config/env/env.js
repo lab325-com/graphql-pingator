@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
-config()
+
+config();
 
 let {
 	CONSOLE_LOGGING_LEVELS = `custom,info,error,warn,query`,
@@ -11,10 +12,12 @@ let {
 	PG_BOSS_POSTGRES_PORT,
 	PG_BOSS_POSTGRES_USER,
 	PG_BOSS_RETRY_BACKOFF = 'false',
-	PG_BOSS_SCHEMA = 'pgboss'
-} = process.env
+	PG_BOSS_SCHEMA = 'pgboss',
+	PG_BOSS_JOB_CHECK_INTERVAL_MS = '200'
+} = process.env;
 
 CONSOLE_LOGGING_LEVELS = CONSOLE_LOGGING_LEVELS.split(`,`);
+PG_BOSS_JOB_CHECK_INTERVAL_MS = Number(PG_BOSS_JOB_CHECK_INTERVAL_MS);
 
 export {
 	CONSOLE_LOGGING_LEVELS,
@@ -26,5 +29,6 @@ export {
 	PG_BOSS_POSTGRES_PORT,
 	PG_BOSS_POSTGRES_USER,
 	PG_BOSS_RETRY_BACKOFF,
-	PG_BOSS_SCHEMA
+	PG_BOSS_SCHEMA,
+	PG_BOSS_JOB_CHECK_INTERVAL_MS
 };

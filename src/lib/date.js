@@ -11,7 +11,9 @@ export const addToDate = (sourceDate, number, unit) => {
 		unit = unit.slice(0, -1);
 	
 	// Check the unit and perform the appropriate calculation
-	if (unit === 'minute')
+	if (unit === 'second')
+		newDate.setTime(newDate.getTime() + (parsedNumber * 1000));
+	else if (unit === 'minute')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 1000));
 	else if (unit === 'hour')
 		newDate.setTime(newDate.getTime() + (parsedNumber * 60 * 60 * 1000));
@@ -26,7 +28,7 @@ export const addToDate = (sourceDate, number, unit) => {
 	else if (unit === 'year')
 		newDate.setFullYear(newDate.getFullYear() + parsedNumber);
 	else
-		throw new Error('Invalid unit specified. Unit must be one of \'day\', \'hour\', \'minute\', \'week\', \'month\', \'quarter\', or \'year\'.');
+		throw new Error('Invalid unit specified. Unit must be one of \'day\', \'hour\', \'minute\', \'second\', \'week\', \'month\', \'quarter\', or \'year\'.');
 	
 	return newDate;
 };

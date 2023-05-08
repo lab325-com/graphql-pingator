@@ -127,8 +127,8 @@ endpoints.on('callback_query', async (context) => {
 	if (sceneId !== currentSceneId)
 		return await context.answerCbQuery();
 	
-	if (context.scene.state.selectedEndpoint && context.scene.state.selectedEndpoint.id === data)
-		return await context.answerCbQuery();
+	/* if (context.scene.state.selectedEndpoint && context.scene.state.selectedEndpoint.id === data)
+		return await context.answerCbQuery(); */
 	
 	const endpoint = await models.Endpoint.findByPk(data, { where: { chatId: chatId.toString() } });
 	
