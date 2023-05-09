@@ -94,7 +94,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		
 		ctx.wizard.state.endpoint.restSuccessStatus = restSuccessStatus;
 		
-		await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request.</b>\ne.g. { "headers": { "Authorization": "token" }, "body": { ... } }`);
+		await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request. Be sure to use "" instead of others</b>\ne.g. { "headers": { "Authorization": "token" }, "data": { "query": { "..." } } }`);
 		return ctx.wizard.next();
 	},
 	async (ctx) => {

@@ -1,11 +1,12 @@
 import models from '@models';
 import bot from '@lib/telegram';
-import { bold, fmt } from 'telegraf/format';
+import { bold, fmt, italic } from 'telegraf/format';
 import log from '@lib/log';
 import pgBoss from '@lib/pgBoss';
 import { addToDate, isLaterThanNow } from '@lib/date';
 import { PG_BOSS_JOB_CHECK_INTERVAL_MS } from '@config/env';
 import { endpointExpirationAlertQueueName, endpointQueueName } from '@lib/pgBoss/queueNames';
+import Monitor from '@classes/Monitor';
 
 const endpointExpirationAlertHandler = async job => {
 	const endpoint = await models.Endpoint.findByPk(job.data.endpointId);
@@ -17,19 +18,23 @@ const endpointHandler = async job => {
 	
 	if (!endpoint) {
 		log.info(`Cannot check endpoint ${job.data.endpointId} because it doesn't exist anymore`);
-		runningEndpointChecks.splice(runningEndpointChecks.indexOf(endpoint.id), 1);
+		monitoredEndpoints.splice(monitoredEndpoints.indexOf(endpoint.id), 1);
 		await pgBoss.complete(job.id);
 		return;
 	}
 	
 	if (endpoint.expireAt && !isLaterThanNow(new Date(endpoint.expireAt))) {
 		log.info(`Cannot check endpoint ${endpoint.name} because it is expired`);
-		runningEndpointChecks.splice(runningEndpointChecks.indexOf(endpoint.id), 1);
+		monitoredEndpoints.splice(monitoredEndpoints.indexOf(endpoint.id), 1);
 		await pgBoss.complete(job.id);
 		return;
 	}
 	
-	await bot.telegram.sendMessage(endpoint.chatId, fmt`check was performed`);
+	const monitor = new Monitor(endpoint);
+	const monitorResult = await monitor.pingOnce();
+	
+	if (!monitorResult.isSuccess)
+		await bot.telegram.sendMessage(endpoint.chatId, fmt`❌ ${bold('ERROR')} occurred while monitoring endpoint ${bold(endpoint.name)}. Details: \n${italic(monitorResult.error)}`);
 	
 	const startAfter = addToDate(new Date(), endpoint.interval, 'seconds');
 	await pgBoss.send(job.name, job.data, { startAfter });
@@ -42,17 +47,17 @@ const workerOptions = {
 };
 
 const expirationAlertJobs = {};
-const runningEndpointChecks = [];
+const monitoredEndpoints = [];
 
 export const runEndpointMonitoring = async (endpointId) => {
-	runningEndpointChecks.push(endpointId);
+	monitoredEndpoints.push(endpointId);
 	
 	const queueName = endpointQueueName(endpointId);
 	await pgBoss.work(queueName, workerOptions, endpointHandler);
 	await pgBoss.send(queueName, { endpointId: endpointId }, {});
 }
 
-export const isMonitoringEndpoint = (endpointId) => runningEndpointChecks.includes(endpointId);
+export const isMonitoringEndpoint = (endpointId) => monitoredEndpoints.includes(endpointId);
 
 export const scheduleEndpointExpirationAlert = async (endpointId, expireAt) => {
 	const jobId = expirationAlertJobs[endpointId];

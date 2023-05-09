@@ -24,6 +24,7 @@
   "license": "ISC",
   "dependencies": {
     "@lab325/log": "^1.0.1",
+    "axios": "^1.4.0",
     "dotenv": "^16.0.3",
     "lodash": "^4.17.21",
     "pg": "^8.10.0",
