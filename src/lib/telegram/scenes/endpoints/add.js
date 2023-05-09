@@ -7,7 +7,7 @@ import models from '@/models';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import { addToDate } from '@lib/date';
 import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
-import { setEndpointExpirationAlertJob } from '@lib/pgBoss/handlers';
+import { runEndpointMonitoring, scheduleEndpointExpirationAlert } from '@lib/pgBoss/handlers/endpointMonitoring';
 
 const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async (ctx) => {
@@ -172,7 +172,9 @@ addEndpoint.command('save', async (ctx) => {
 async function createEndpoint(ctx) {
 	try {
 		const endpoint = await models.Endpoint.create(ctx.wizard.state.endpoint);
-		await setEndpointExpirationAlertJob(endpoint.id, endpoint.expireAt)
+		
+		await runEndpointMonitoring(endpoint.id);
+		await scheduleEndpointExpirationAlert(endpoint.id, endpoint.expireAt);
 		
 		await ctx.replyWithHTML(`✅ New endpoint was created!`);
 		

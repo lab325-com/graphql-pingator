@@ -4,7 +4,11 @@ import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram
 import { addToDate } from '@lib/date';
 import models from '@/models';
 import log from '@lib/log';
-import { setEndpointExpirationAlertJob } from '@lib/pgBoss/handlers';
+import {
+	isMonitoringEndpoint,
+	runEndpointMonitoring,
+	scheduleEndpointExpirationAlert
+} from '@lib/pgBoss/handlers/endpointMonitoring';
 
 const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 	async (context) => {
@@ -53,7 +57,11 @@ async function saveEndpoint(context) {
 	try {
 		const endpointId = context.wizard.state.endpointId;
 		await models.Endpoint.update(context.wizard.state.endpoint, { where: { id: endpointId } });
-		await setEndpointExpirationAlertJob(endpointId, context.wizard.state.endpoint.expireAt);
+		
+		if (!isMonitoringEndpoint(endpointId))
+			await runEndpointMonitoring(endpointId);
+		
+		await scheduleEndpointExpirationAlert(endpointId, context.wizard.state.endpoint.expireAt);
 		
 		await context.replyWithHTML(`✅ Endpoint was saved!`);
 		
