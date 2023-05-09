@@ -1,10 +1,7 @@
 import { config } from 'dotenv';
+import { TELEGRAM_BOT_API_TOKEN } from '@config/env';
 
 config();
-
-import {
-	TELEGRAM_BOT_API_TOKEN
-} from '@config/env';
 
 const tgConfig = {
 	token: TELEGRAM_BOT_API_TOKEN

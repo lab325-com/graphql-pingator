@@ -55,7 +55,7 @@ export const runEndpointMonitoring = async (endpointId) => {
 	const queueName = endpointQueueName(endpointId);
 	await pgBoss.work(queueName, workerOptions, endpointHandler);
 	await pgBoss.send(queueName, { endpointId: endpointId }, {});
-}
+};
 
 export const isMonitoringEndpoint = (endpointId) => monitoredEndpoints.includes(endpointId);
 

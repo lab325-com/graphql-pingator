@@ -1,7 +1,4 @@
 import { config } from 'dotenv';
-
-config();
-
 import { Scenes, Telegraf } from 'telegraf';
 import PostgresSession from 'telegraf-postgres-session';
 import { message } from 'telegraf/filters';
@@ -13,6 +10,8 @@ import { SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 
 import telegramConfigs from '@config/telegramConfig';
 import sequelizeConfigs from '@config/sequelizeConfig';
+
+config();
 
 const env = process.env.NODE_ENV || 'development';
 const sequelizeConfig = sequelizeConfigs[env];
