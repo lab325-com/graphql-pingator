@@ -1,16 +1,16 @@
-import { config } from 'dotenv';
+// TODO проверить, что работает
+// import { config } from 'dotenv';
 
-config();
+// config();
 
 import { Scenes, Telegraf } from 'telegraf';
 import PostgresSession from 'telegraf-postgres-session';
 import { message } from 'telegraf/filters';
-import endpoints from './scenes/endpoints/index';
+import endpointsScene from './scenes/endpoints/list';
 import addEndpoint from './scenes/endpoints/add';
 import deleteEndpoint from './scenes/endpoints/delete';
 import editEndpoint from './scenes/endpoints/edit';
 import { SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-
 import telegramConfigs from '@config/telegramConfig';
 import sequelizeConfigs from '@config/sequelizeConfig';
 
@@ -26,7 +26,7 @@ bot.use((new PostgresSession({
 })).middleware());
 
 const stage = new Scenes.Stage([
-	endpoints,
+	endpointsScene,
 	addEndpoint,
 	deleteEndpoint,
 	editEndpoint
@@ -34,24 +34,24 @@ const stage = new Scenes.Stage([
 
 bot.use(stage.middleware());
 
-bot.start(async (context) => await sendGreetingMessage(context));
+bot.start(async context => await sendGreetingMessage(context));
 
-bot.on(message('group_chat_created'), async (context) => await sendGreetingMessage(context));
+bot.on(message('group_chat_created'), async context => await sendGreetingMessage(context));
 
-bot.on(message('new_chat_members'), async (context) => {
+bot.on(message('new_chat_members'), async context => {
 	if (context.message.new_chat_members.find(e => e.id === context.botInfo.id))
 		await sendGreetingMessage(context);
 });
 
-bot.command('help', async (context) => {
+bot.command('help', async context => {
 	await context.replyWithHTML('Here is list of commands (not so long xD):' +
 		'\n/endpoints - shows list of endpoints');
 });
 
-bot.command('endpoints', async (context) =>
+bot.command('endpoints', async context =>
 	await context.scene.enter(SCENE_NAME_ENDPOINTS));
 
-const sendGreetingMessage = async (context) =>
+const sendGreetingMessage = async context =>
 	await context.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥\n\nClick /endpoints and start working with me.');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

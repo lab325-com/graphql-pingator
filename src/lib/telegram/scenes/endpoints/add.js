@@ -1,23 +1,46 @@
 import { Scenes } from 'telegraf';
+import models from '@/models';
 import log from '@lib/log';
 import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
 import { isValidHttpUrl, isValidJsonString } from '@lib/validator';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
-import models from '@/models';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import { addToDate } from '@lib/date';
 import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
 import { runEndpointMonitoring, scheduleEndpointExpirationAlert } from '@lib/pgBoss/handlers/endpointMonitoring';
 
+/*
+TODO разделить utils на файлы, 'add' сделать дикекторией, использовать require-all
+TODO сделать константами paramNames
+ */
+
+
+const createEndpoint = async ctx => {
+	try {
+		const endpoint = await models.Endpoint.create(ctx.wizard.state.endpoint);
+		
+		await runEndpointMonitoring(endpoint.id);
+		await scheduleEndpointExpirationAlert(endpoint.id, endpoint.expireAt);
+		
+		await ctx.replyWithHTML(`✅ New endpoint was created!`);
+		
+		delete ctx.wizard.state.endpoint;
+		return await ctx.scene.enter(SCENE_NAME_ENDPOINTS);
+	} catch (e) {
+		log.error(e);
+		await ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`);
+	}
+};
+
 const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
-	async (ctx) => {
+	async ctx => {
 		ctx.wizard.state.endpoint = {};
 		ctx.wizard.state.canSave = false;
 		
 		await ctx.replyWithHTML(`<b>Enter name of your endpoint</b> \n\n📌 if you don't want to add new endpoint you can type /cancel`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'name';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -29,7 +52,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter type of endpoint.</b> Available types: \n✔️ ${ENDPOINT_TYPE_REST}; \n✔️ ${ENDPOINT_TYPE_GRAPHQL}`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'type';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -45,7 +68,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter url of endpoint</b>`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'url';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -66,7 +89,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter HTTP Method.</b> Available methods: \n✔️ ${HTTP_METHOD_GET}; \n✔️ ${HTTP_METHOD_POST}`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'HTTP Method';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -82,7 +105,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter success status code of endpoint</b> \ne.g. 200`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'success status code';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -97,7 +120,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter data/options JSON that will be sent in request. Be sure to use "" instead of others</b>\ne.g. { "headers": { "Authorization": "token" }, "data": { "query": { "..." } } }`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'data/options';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -113,7 +136,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter interval in seconds</b>`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'interval';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -129,7 +152,7 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await ctx.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> or click just /save and it won't expire`);
 		return ctx.wizard.next();
 	},
-	async (ctx) => {
+	async ctx => {
 		const paramName = 'expiration';
 		
 		if (isMessageNullOrEmpty(ctx))
@@ -159,31 +182,15 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		await createEndpoint(ctx);
 	});
 
-addEndpoint.command('cancel', async (ctx) => {
+addEndpoint.command('cancel', async ctx => {
 	delete ctx.wizard.state.endpoint;
 	await ctx.scene.enter(SCENE_NAME_ENDPOINTS);
 });
 
-addEndpoint.command('save', async (ctx) => {
+addEndpoint.command('save', async ctx => {
 	if (ctx.wizard.state.canSave === true)
 		await createEndpoint(ctx);
 });
 
-async function createEndpoint(ctx) {
-	try {
-		const endpoint = await models.Endpoint.create(ctx.wizard.state.endpoint);
-		
-		await runEndpointMonitoring(endpoint.id);
-		await scheduleEndpointExpirationAlert(endpoint.id, endpoint.expireAt);
-		
-		await ctx.replyWithHTML(`✅ New endpoint was created!`);
-		
-		delete ctx.wizard.state.endpoint;
-		return await ctx.scene.enter(SCENE_NAME_ENDPOINTS);
-	} catch (e) {
-		log.error(e);
-		await ctx.replyWithHTML(`⚠️ Error occurred while creating new endpoint, try click /save again!`);
-	}
-}
 
 export default addEndpoint;

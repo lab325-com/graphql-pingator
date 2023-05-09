@@ -9,15 +9,18 @@ import {
 	runEndpointMonitoring,
 	scheduleEndpointExpirationAlert
 } from '@lib/pgBoss/handlers/endpointMonitoring';
-
+/*
+TODO разделить utils на файлы, 'add' сделать дикекторией, использовать require-all
+TODO сделать константами paramNames
+ */
 const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
-	async (context) => {
+	async context => {
 		context.wizard.state.endpoint = {};
 		
 		await context.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> and it won't expire \n📌 if you don't want to edit click /cancel`);
 		return context.wizard.next();
 	},
-	async (context) => {
+	async context => {
 		const paramName = 'expiration';
 		
 		if (isMessageNullOrEmpty(context))
@@ -48,7 +51,7 @@ const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 		await saveEndpoint(context);
 	});
 
-editEndpoint.command('cancel', async (context) => {
+editEndpoint.command('cancel', async context => {
 	delete context.wizard.state.endpoint;
 	await context.scene.enter(SCENE_NAME_ENDPOINTS);
 });

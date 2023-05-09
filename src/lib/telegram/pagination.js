@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { callbackData } from '@lib/telegram/callbackQuery';
 
+// TODO move to constants
 export const prevPageButton = 'prevPage';
 export const nextPageButton = 'nextPage';
 export const pageButton = 'page';
