@@ -1,114 +1,126 @@
 import { Scenes } from 'telegraf';
 import { bold, fmt } from 'telegraf/format';
-import models from '@/models';
+import models from '@models';
+import _ from 'lodash';
+import { ENDPOINT_TYPE_REST } from '@constants/Endpoint';
+import { DateTime } from 'luxon';
+import { COMMAND_NAME_ADD, COMMAND_NAME_DELETE, COMMAND_NAME_EDIT } from '@constants/Command';
+import TelegramBot from '@classes/TelegramBot';
+import { ENDPOINTS_PER_PAGE } from '@config/env';
+
 import {
 	SCENE_NAME_ADD_ENDPOINT,
 	SCENE_NAME_DELETE_ENDPOINT,
 	SCENE_NAME_EDIT_ENDPOINT,
 	SCENE_NAME_ENDPOINTS
 } from '@constants/Scene';
-import { getSelectedEndpointRepresentationText } from '@lib/endpoint';
 import {
-	createPaginationKeyboard,
-	getPagesCount,
-	nextPageButton,
-	pageButton,
-	prevPageButton
-} from '@lib/telegram/pagination';
-import { isLaterThanNow } from '@lib/date';
-import { getCallbackDataParts, isCallbackDataEqual } from '@lib/telegram/callbackQuery';
-import { sendLoadingMessage } from '@lib/telegram/message';
-import { DateTime } from 'luxon';
+	PAGINATION_NEXT_PAGE_BUTTON,
+	PAGINATION_PAGE_BUTTON,
+	PAGINATION_PREVIOUS_PAGE_BUTTON
+} from '@constants/Pagination';
 
-// TODO move to env
-const endpointsPerPage = 5;
+import { getHumanReadableDateDifference } from '@lib/date';
 
 const setSceneId = scene => context => {
 	context.scene.state.id = DateTime.now().toMillis()
 		.toString();
 };
 
+const getSelectedEndpointRepresentationText = endpoint => {
+	let endpointsRepresentation = `✅ Selected endpoint <b>${endpoint.name}</b>\n`;
+	
+	
+	endpointsRepresentation += endpoint.expireAt
+		? DateTime.now() < DateTime.fromJSDate(endpoint.expireAt)
+			? `expires in: ${getHumanReadableDateDifference(new Date(), endpoint.expireAt)}\n`
+			: `already expired ⌛\n`
+		: `never expires ♾️\n`;
+	
+	const dataKeys = ['url', 'type', 'data', 'interval'];
+	
+	if (ENDPOINT_TYPE_REST === endpoint.type)
+		dataKeys.push('httpMethod', 'restSuccessStatus');
+	
+	for (const key of dataKeys)
+		endpointsRepresentation += `${_.startCase(key)}: ${endpoint[key]}\n`;
+	
+	endpointsRepresentation += `\n📌 Click /delete or /edit`;
+	
+	return endpointsRepresentation;
+};
 const getSceneId = context => context.scene.state.id;
 
-const endpointDisplaySelector = endpoint => {
-	let buttonText = `${endpoint.name} (${endpoint.type})`;
-	
-	if (endpoint.expireAt === null)
-		buttonText += ' ♾️';
-	else if (!isLaterThanNow(new Date(endpoint.expireAt)))
-		buttonText += ' ⌛';
-	
-	return buttonText;
-};
-
 async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
-	const { count, rows } = await models.Endpoint.findAndCountAll({
-		attributes: ['id', 'name', 'type', 'expireAt'],
+	const { Pagination: { totalPages, total }, Endpoinsts } = await models.Endpoint.paginate({
 		where: { chatId: chatId },
-		limit: endpointsPerPage,
-		offset: page * endpointsPerPage
+		limit: ENDPOINTS_PER_PAGE,
+		offset: page * ENDPOINTS_PER_PAGE
 	});
 	
-	const pagesCount = getPagesCount(count, endpointsPerPage);
-	const keyboard = createPaginationKeyboard(rows, endpointDisplaySelector, item => item.id, page, pagesCount, sceneId);
-	return { keyboard, rows, count, pagesCount };
+	const rows = Endpoinsts.reduce((acc, e) => ({
+		...acc,
+		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() > DateTime.fromJSDate(e.expireAt) ? '♾️' : '⌛' : ''}`
+	}), {});
+	
+	const keyboard = TelegramBot.createPaginationKeyboard({ rows, page, totalPages, sceneId });
+	
+	return { keyboard, rows, total, totalPages };
 }
 
 const endpointsScene = new Scenes.BaseScene(SCENE_NAME_ENDPOINTS);
 
 endpointsScene.enter(async context => {
-	delete context.scene.state.pagesCount;
-	delete context.scene.state.page;
+	context.scene.state = _.omit(context.scene.state, ['totalPages', 'page']);
 	
 	setSceneId(context);
 	
 	const {
 		keyboard,
-		count,
-		pagesCount
+		total,
+		totalPages
 	} = await getInlineEndpointsKeyboard(context.message.chat.id.toString(), context.scene.state.id);
 	
-	context.scene.state.pagesCount = pagesCount;
+	context.scene.state.totalPages = totalPages;
 	
-	sendLoadingMessage.cancelLoading();
-	
-	const answer = count
-		? fmt`${bold(`List of Endpoints (${count})`)}\n\n📌 To add new endpoint click /add \n📌 Toggle any endpoint to see its details and then edit or delete it`
+	const answer = total
+		? fmt`${bold(`List of Endpoints (${total})`)}\n\n📌 To add new endpoint click /add \n📌 Toggle any endpoint to see its details and then edit or delete it`
 		: fmt`You have ${bold('0')} endpoints\n\n📌 To add new endpoint click /add`;
 	
 	await context.reply(answer, keyboard);
 });
 
-endpointsScene.command('add', async context =>
-	await context.scene.enter(SCENE_NAME_ADD_ENDPOINT));
 
-endpointsScene.command('delete', async context => {
-	if (!context.scene.state.selectedEndpoint) return;
-	
-	await context.scene.enter(SCENE_NAME_DELETE_ENDPOINT, { endpointId: context.scene.state.selectedEndpoint.id });
-});
+const commands = {
+	[COMMAND_NAME_ADD]: async context => await context.scene.enter(SCENE_NAME_ADD_ENDPOINT),
+	[COMMAND_NAME_DELETE]: async context => {
+		if (!context.scene.state.selectedEndpoint) return;
+		
+		await context.scene.enter(SCENE_NAME_DELETE_ENDPOINT, { endpointId: context.scene.state.selectedEndpoint.id });
+	},
+	[COMMAND_NAME_EDIT]: async context => {
+		if (!context.scene.state.selectedEndpoint) return;
+		
+		await context.scene.enter(SCENE_NAME_EDIT_ENDPOINT, { endpointId: context.scene.state.selectedEndpoint.id });
+	}
+};
 
-endpointsScene.command('edit', async context => {
-	if (!context.scene.state.selectedEndpoint) return;
-	
-	await context.scene.enter(SCENE_NAME_EDIT_ENDPOINT, { endpointId: context.scene.state.selectedEndpoint.id });
-});
+for (const command in commands)
+	endpointsScene.command(command, commands[command]);
 
 endpointsScene.on('callback_query', async context => {
 	const currentSceneId = getSceneId(context);
 	const callbackData = context.callbackQuery.data;
 	const chatId = context.callbackQuery.message.chat.id;
 	
-	if (!context.scene.state.page)
-		context.scene.state.page = 0;
+	if (!context.scene.state.page) context.scene.state.page = 0;
 	
-	const { sceneId, data: action } = getCallbackDataParts(callbackData);
+	const { sceneId, buttonName } = TelegramBot.parseButtonId(callbackData);
 	
 	if (sceneId !== currentSceneId) return await context.answerCbQuery();
 	
-	
-	switch (action) {
-		case prevPageButton:
+	switch (buttonName) {
+		case PAGINATION_PREVIOUS_PAGE_BUTTON:
 			if (context.scene.state.page > 0) {
 				context.scene.state.page--;
 				
@@ -117,15 +129,15 @@ endpointsScene.on('callback_query', async context => {
 			}
 			break;
 		
-		case nextPageButton:
-			if (context.scene.state.page + 1 < context.scene.state.pagesCount) {
+		case PAGINATION_NEXT_PAGE_BUTTON:
+			if (context.scene.state.page + 1 < context.scene.state.totalPages) {
 				context.scene.state.page++;
 				
 				const { keyboard } = await getInlineEndpointsKeyboard(chatId.toString(), currentSceneId, context.scene.state.page);
 				await context.editMessageReplyMarkup(keyboard.reply_markup);
 			}
 			break;
-		case pageButton:
+		case PAGINATION_PAGE_BUTTON:
 			break;
 		default:
 			const endpoint = await models.Endpoint.findByPk(action, { where: { chatId: chatId.toString() } });

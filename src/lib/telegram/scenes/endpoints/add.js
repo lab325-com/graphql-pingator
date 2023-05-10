@@ -1,4 +1,5 @@
 import { Scenes } from 'telegraf';
+import TelegramBot from '@classes/TelegramBot';
 import models from '@/models';
 import log from '@lib/log';
 import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
@@ -6,7 +7,6 @@ import { isValidHttpUrl, isValidJsonString } from '@lib/validator';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import { addToDate } from '@lib/date';
-import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
 import { runEndpointMonitoring, scheduleEndpointExpirationAlert } from '@lib/pgBoss/handlers/endpointMonitoring';
 
 /*
@@ -43,8 +43,8 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'name';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.chatId = ctx.message.chat.id.toString();
 		ctx.wizard.state.endpoint.name = ctx.message.text.trim();
@@ -55,13 +55,13 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'type';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		const type = ctx.message.text.toLowerCase();
 		
 		if (type !== ENDPOINT_TYPE_REST && type !== ENDPOINT_TYPE_GRAPHQL)
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.type = type;
 		
@@ -71,13 +71,13 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'url';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		const url = ctx.message.text;
 		
 		if (!isValidHttpUrl(url))
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.url = url;
 		
@@ -92,13 +92,13 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'HTTP Method';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		const httpMethod = ctx.message.text.toUpperCase();
 		
 		if (httpMethod !== HTTP_METHOD_GET && httpMethod !== HTTP_METHOD_POST)
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.httpMethod = httpMethod;
 		
@@ -108,12 +108,12 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'success status code';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		const restSuccessStatus = parseInt(ctx.message.text);
 		if (isNaN(restSuccessStatus) || restSuccessStatus < 100 || restSuccessStatus > 599)
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.restSuccessStatus = restSuccessStatus;
 		
@@ -123,13 +123,13 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'data/options';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx);
 		
 		const data = ctx.message.text.replaceAll('\n', '');
 		
 		if (!isValidJsonString(data))
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.data = data;
 		
@@ -139,12 +139,12 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'interval';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		const interval = parseInt(ctx.message.text);
 		if (isNaN(interval) || interval < 1 || interval > 2147483647)
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		ctx.wizard.state.endpoint.interval = interval;
 		ctx.wizard.state.canSave = true;
@@ -155,8 +155,8 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 	async ctx => {
 		const paramName = 'expiration';
 		
-		if (isMessageNullOrEmpty(ctx))
-			return await sendValidationFailedMessage(ctx, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(ctx))
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		if (ctx.message.text.toLowerCase() === 'never')
 			return await createEndpoint(ctx);
@@ -164,18 +164,18 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 		const literals = ctx.message.text.split(' ');
 		
 		if (literals.length !== 2)
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		
 		try {
 			const amount = parseInt(literals[0]);
 			const unit = literals[1];
 			
 			if (isNaN(amount) || amount < 1)
-				return await sendValidationFailedMessage(ctx, paramName);
+				return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 			
 			ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit);
 		} catch (e) {
-			return await sendValidationFailedMessage(ctx, paramName);
+			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		}
 		
 		

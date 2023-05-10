@@ -1,6 +1,5 @@
 import { Scenes } from 'telegraf';
 import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-import { isMessageNullOrEmpty, sendValidationFailedMessage } from '@lib/telegram/message';
 import { addToDate } from '@lib/date';
 import models from '@/models';
 import log from '@lib/log';
@@ -9,6 +8,7 @@ import {
 	runEndpointMonitoring,
 	scheduleEndpointExpirationAlert
 } from '@lib/pgBoss/handlers/endpointMonitoring';
+import TelegramBot from '@classes/TelegramBot';
 /*
 TODO разделить utils на файлы, 'add' сделать дикекторией, использовать require-all
 TODO сделать константами paramNames
@@ -23,8 +23,8 @@ const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 	async context => {
 		const paramName = 'expiration';
 		
-		if (isMessageNullOrEmpty(context))
-			return await sendValidationFailedMessage(context, paramName);
+		if (TelegramBot.isMessageNullOrEmpty(context))
+			return await TelegramBot.sendValidationFailedMessage(context, paramName);
 		
 		if (context.message.text.toLowerCase() === 'never') {
 			context.wizard.state.endpoint.expireAt = null;
@@ -34,18 +34,18 @@ const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 		const literals = context.message.text.split(' ');
 		
 		if (literals.length !== 2)
-			return await sendValidationFailedMessage(context, paramName);
+			return await TelegramBot.sendValidationFailedMessage(context, paramName);
 		
 		try {
 			const amount = parseInt(literals[0]);
 			const unit = literals[1];
 			
 			if (isNaN(amount) || amount < 1)
-				return await sendValidationFailedMessage(context, paramName);
+				return await TelegramBot.sendValidationFailedMessage(context, paramName);
 			
 			context.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit);
 		} catch (e) {
-			return await sendValidationFailedMessage(context, paramName);
+			return await TelegramBot.sendValidationFailedMessage(context, paramName);
 		}
 		
 		await saveEndpoint(context);
