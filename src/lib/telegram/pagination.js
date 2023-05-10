@@ -14,9 +14,9 @@ export const createPaginationKeyboard = (items, displaySelector, callbackDataSel
 	const buttons = [];
 	for (const item of items) {
 		const buttonText = displaySelector(item);
-		const itemId = callbackDataSelector(item);
+		const callbackData = callbackDataSelector(item);
 		buttons.push([
-			Markup.button.callback(buttonText, callbackData(sceneId, itemId))
+			Markup.button.callback(buttonText, callbackData(sceneId, callbackData))
 		]);
 	}
 	
