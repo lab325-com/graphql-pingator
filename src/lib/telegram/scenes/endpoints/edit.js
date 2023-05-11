@@ -2,11 +2,6 @@ import { Scenes } from 'telegraf';
 import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import models from '@/models';
 import log from '@lib/log';
-import {
-	isMonitoringEndpoint,
-	runEndpointMonitoring,
-	scheduleEndpointExpirationAlert
-} from '@lib/pgBoss/handlers/endpointMonitoring';
 import TelegramBot from '@classes/TelegramBot';
 import { DateTime } from 'luxon';
 /*
@@ -44,7 +39,8 @@ const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 				return await TelegramBot.sendValidationFailedMessage(context, paramName);
 			
 			context.wizard.state.endpoint.expireAt = DateTime.now()
-				.plus({ [unit]: amount }).toJSDate();
+				.plus({ [unit]: amount })
+.toJSDate();
 		} catch (e) {
 			return await TelegramBot.sendValidationFailedMessage(context, paramName);
 		}

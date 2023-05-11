@@ -1,4 +1,5 @@
 import { Model } from 'sequelize';
+import _ from 'lodash';
 
 class ExtendedModel extends Model {
 	static async paginate(options) {

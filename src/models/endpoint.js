@@ -39,11 +39,13 @@ module.exports = (sequelize, DataTypes) => {
 							result.message = response.data.errors.map(e => e.message).join('\n');
 							return result;
 						}
+						break;
 					case ENDPOINT_TYPE_REST:
 						if (response.status !== restSuccessStatus) {
 							result.message = `Endpoint returned ${response.status} status code, expected status code is ${this.endpoint.restSuccessStatus}`;
 							return result;
 						}
+						break;
 					default:
 						throw new Error(`Endpoint type ${this.endpoint.type} is not supported.`);
 				}
@@ -112,7 +114,7 @@ module.exports = (sequelize, DataTypes) => {
 		tableName: TABLE_NAME_ENDPOINTS,
 		hooks: {
 			afterCreate: async endpoint => await endpoint.runMonitoring(),
-			afterUpdate: async (endpoint, options) => {
+			afterUpdate: async (endpoint) => {
 				if (endpoint.changed('expireAt')) {
 					const oldExpireAt = DateTime.fromJSDate(endpoint.previous('expireAt'));
 					

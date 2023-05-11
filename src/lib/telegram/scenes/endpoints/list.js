@@ -20,7 +20,7 @@ import {
 	PAGINATION_PREVIOUS_PAGE_BUTTON
 } from '@constants/Pagination';
 
-const setSceneId = scene => context => {
+const setSceneId = context => {
 	context.scene.state.id = DateTime.now().toMillis()
 		.toString();
 };
@@ -142,7 +142,7 @@ endpointsScene.on('callback_query', async context => {
 		case PAGINATION_PAGE_BUTTON:
 			break;
 		default:
-			const endpoint = await models.Endpoint.findByPk(action, { where: { chatId: chatId.toString() } });
+			const endpoint = await models.Endpoint.findByPk(buttonName, { where: { chatId: chatId.toString() } });
 			
 			context.scene.state.selectedEndpoint = endpoint;
 			

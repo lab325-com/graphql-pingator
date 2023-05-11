@@ -1,8 +1,14 @@
-import { Scenes, Telegraf } from 'telegraf';
+import { Scenes, Telegraf, Markup } from 'telegraf';
 import PostgresSession from 'telegraf-postgres-session';
 import { message } from 'telegraf/filters';
-import { Markup } from 'telegraf';
-
+import configs from '@config/sequelizeConfig';
+import {
+	PAGINATION_NEXT_PAGE_BUTTON,
+	PAGINATION_PAGE_BUTTON,
+	PAGINATION_PREVIOUS_PAGE_BUTTON
+} from '@constants/Pagination';
+const env = process.env.NODE_ENV || 'local';
+const config = configs[env];
 
 class TelegramBot {
 	
@@ -17,13 +23,11 @@ class TelegramBot {
 		this._stage = new Scenes.Stage(scenes);
 		
 		this._botInstance.use((new PostgresSession({
-			user: sequelizeConfig.username,
-			...sequelizeConfig
+			user: config.username,
+			...config
 		})).middleware());
 		
 		this._botInstance.use(this._stage.middleware());
-		
-		
 	}
 	
 	static isMessageNullOrEmpty(context) {
@@ -48,7 +52,6 @@ class TelegramBot {
 	 * @returns {Markup<InlineKeyboardMarkup>}
 	 */
 	static createPaginationKeyboard({ rows, currentPage = 0, totalPages, sceneId }) {
-		
 		const buttons = [];
 		
 		for (const key in rows) {
@@ -90,10 +93,8 @@ class TelegramBot {
 				await this.sendGreetingMessage(context);
 		});
 		
-		
-		for (const commandName in commands) {
+		for (const commandName in commands)
 			this._botInstance.command(commandName, commands[commandName]);
-		}
 	}
 	
 	async sendGreetingMessage(context) {

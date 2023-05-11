@@ -6,7 +6,6 @@ import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
 import { isValidHttpUrl, isValidJsonString } from '@lib/validator';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-import { runEndpointMonitoring, scheduleEndpointExpirationAlert } from '@lib/pgBoss/handlers/endpointMonitoring';
 import { DateTime } from 'luxon';
 
 /*
@@ -171,7 +170,8 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 				return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 			
 			ctx.wizard.state.endpoint.expireAt = DateTime.now()
-				.plus({ [unit]: amount }).toJSDate();
+				.plus({ [unit]: amount })
+.toJSDate();
 		} catch (e) {
 			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		}
