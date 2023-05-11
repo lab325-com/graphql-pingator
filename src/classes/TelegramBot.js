@@ -42,6 +42,10 @@ class TelegramBot {
 		await context.replyWithHTML('Loading...');
 	}
 	
+	async sendMessage(chatId, message, extra = null) {
+		await this._botInstance.telegram.sendMessage(chatId, message, extra)
+	}
+	
 	/**
 	 *
 	 * @param rows {[id]: string}
@@ -56,15 +60,15 @@ class TelegramBot {
 		
 		for (const key in rows) {
 			buttons.push([Markup.button.callback(rows[key], this.createButtonId(sceneId, key))]);
-			
-			buttons.push([
-				Markup.button.callback(`⬅️`, this.createButtonId(sceneId, PAGINATION_PREVIOUS_PAGE_BUTTON)),
-				Markup.button.callback(`page ${currentPage + 1}/${totalPages}`, PAGINATION_PAGE_BUTTON),
-				Markup.button.callback(`➡️`, this.createButtonId(sceneId, PAGINATION_NEXT_PAGE_BUTTON))
-			]);
-			
-			return Markup.inlineKeyboard(buttons);
 		}
+		
+		buttons.push([
+			Markup.button.callback(`⬅️`, this.createButtonId(sceneId, PAGINATION_PREVIOUS_PAGE_BUTTON)),
+			Markup.button.callback(`page ${currentPage + 1}/${totalPages}`, PAGINATION_PAGE_BUTTON),
+			Markup.button.callback(`➡️`, this.createButtonId(sceneId, PAGINATION_NEXT_PAGE_BUTTON))
+		]);
+		
+		return Markup.inlineKeyboard(buttons);
 	}
 	
 	static parseButtonId(buttonId) {

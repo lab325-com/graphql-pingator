@@ -62,10 +62,10 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	
 	const rows = Endpoints.reduce((acc, e) => ({
 		...acc,
-		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() < DateTime.fromJSDate(e.expireAt) ? '♾️' : '⌛' : ''}`
+		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() < DateTime.fromJSDate(e.expireAt) ? '' : '⌛' : '♾️'}`
 	}), {});
 	
-	const keyboard = TelegramBot.createPaginationKeyboard({ rows, page, totalPages, sceneId });
+	const keyboard = total > 0 ? TelegramBot.createPaginationKeyboard({ rows, page, totalPages, sceneId }) : null;
 	
 	return { keyboard, rows, total, totalPages };
 }

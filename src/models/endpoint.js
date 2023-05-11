@@ -5,15 +5,14 @@ import ExtendedModel from '@classes/ExtendedModel';
 import pgBoss from '@lib/pgBoss';
 import { PG_BOSS_JOB_CHECK_INTERVAL_MS } from '@config/env';
 import { DateTime } from 'luxon';
-import bot from '@lib/telegram';
 import { bold, fmt, italic } from 'telegraf/format';
 import axios from 'axios';
 import { MODEL_NAME_ENDPOINT } from '@constants/Model';
+import telegram from '@lib/telegram';
 
 module.exports = (sequelize, DataTypes) => {
 	
 	class Endpoint extends ExtendedModel {
-		
 		getQueueName() {
 			return `Endpoint_${this.id}`;
 		}
@@ -33,28 +32,29 @@ module.exports = (sequelize, DataTypes) => {
 			});
 			
 			if (result.message)
-				switch (type) {
-					case ENDPOINT_TYPE_GRAPHQL:
-						if (response.data.errors) {
-							result.message = response.data.errors.map(e => e.message).join('\n');
-							return result;
-						}
-						break;
-					case ENDPOINT_TYPE_REST:
-						if (response.status !== restSuccessStatus) {
-							result.message = `Endpoint returned ${response.status} status code, expected status code is ${this.endpoint.restSuccessStatus}`;
-							return result;
-						}
-						break;
-					default:
-						throw new Error(`Endpoint type ${this.endpoint.type} is not supported.`);
-				}
+				return result;
+			
+			switch (type) {
+				case ENDPOINT_TYPE_GRAPHQL:
+					if (response.data.errors) {
+						result.message = response.data.errors.map(e => e.message).join('\n');
+						return result;
+					}
+					break;
+				case ENDPOINT_TYPE_REST:
+					if (response.status !== restSuccessStatus) {
+						result.message = `Endpoint returned ${response.status} status code, expected status code is ${this.endpoint.restSuccessStatus}`;
+						return result;
+					}
+					break;
+				default:
+					throw new Error(`Endpoint type ${this.endpoint.type} is not supported.`);
+			}
 			
 			result.isSuccess = true;
-			
+			console.log(result);
 			return result;
 		}
-		
 		
 		async runMonitoring() {
 			const queueName = this.getQueueName();
@@ -73,26 +73,22 @@ module.exports = (sequelize, DataTypes) => {
 					const { expireAt, name } = endpoint;
 					
 					if (expireAt && DateTime.now() > DateTime.fromJSDate(expireAt))
-						return await bot.telegram.sendMessage(endpoint.chatId, fmt`⌛ Endpoint ${bold(endpoint.name)} has been expired`);
+						return await telegram.sendMessage(endpoint.chatId, fmt`⌛ Endpoint ${bold(name)} has been expired`);
 					
 					const { isSuccess, message } = await endpoint.pingOnce();
 					
 					if (!isSuccess)
-						await bot.telegram.sendMessage(endpoint.chatId, fmt`❌ ${bold('ERROR')} occurred while monitoring endpoint ${bold(name)}. Details: \n${italic(message)}`);
-					
-					console.log(endpoint.interval)
+						await telegram.sendMessage(endpoint.chatId, fmt`❌ ${bold('ERROR')} occurred while monitoring endpoint ${bold(name)}. Details: \n${italic(message)}`);
 					
 					const startAfter = DateTime.now()
 						.plus({ second: endpoint.interval })
 						.toJSDate();
 					
-					console.log(startAfter)
-					
 					await pgBoss.send(job.name, job.data, { startAfter });
 					
-					await job.done();
+					await pgBoss.complete(job.id);
 				} catch (e) {
-					await job.done(e);
+					await pgBoss.fail(job.id, e);
 				}
 			});
 			
