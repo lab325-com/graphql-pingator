@@ -6,8 +6,8 @@ import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
 import { isValidHttpUrl, isValidJsonString } from '@lib/validator';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-import { addToDate } from '@lib/date';
 import { runEndpointMonitoring, scheduleEndpointExpirationAlert } from '@lib/pgBoss/handlers/endpointMonitoring';
+import { DateTime } from 'luxon';
 
 /*
 TODO разделить utils на файлы, 'add' сделать дикекторией, использовать require-all
@@ -17,10 +17,7 @@ TODO сделать константами paramNames
 
 const createEndpoint = async ctx => {
 	try {
-		const endpoint = await models.Endpoint.create(ctx.wizard.state.endpoint);
-		
-		await runEndpointMonitoring(endpoint.id);
-		await scheduleEndpointExpirationAlert(endpoint.id, endpoint.expireAt);
+		await models.Endpoint.create(ctx.wizard.state.endpoint);
 		
 		await ctx.replyWithHTML(`✅ New endpoint was created!`);
 		
@@ -173,7 +170,8 @@ const addEndpoint = new Scenes.WizardScene(SCENE_NAME_ADD_ENDPOINT,
 			if (isNaN(amount) || amount < 1)
 				return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 			
-			ctx.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit);
+			ctx.wizard.state.endpoint.expireAt = DateTime.now()
+				.plus({ [unit]: amount }).toJSDate();
 		} catch (e) {
 			return await TelegramBot.sendValidationFailedMessage(ctx, paramName);
 		}

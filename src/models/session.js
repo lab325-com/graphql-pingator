@@ -1,5 +1,6 @@
 import ExtendedModel from '@classes/ExtendedModel';
 import { TABLE_NAME_SESSIONS } from '@constants/Table';
+import { MODEL_NAME_SESSION } from '@constants/Model';
 
 module.exports = (sequelize, DataTypes) => {
 	class Session extends ExtendedModel {
@@ -10,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
 		session: DataTypes.TEXT
 	}, {
 		sequelize,
-		modelName: 'Session',
+		modelName: MODEL_NAME_SESSION,
 		tableName: TABLE_NAME_SESSIONS
 	});
 	

@@ -20,8 +20,6 @@ import {
 	PAGINATION_PREVIOUS_PAGE_BUTTON
 } from '@constants/Pagination';
 
-import { getHumanReadableDateDifference } from '@lib/date';
-
 const setSceneId = scene => context => {
 	context.scene.state.id = DateTime.now().toMillis()
 		.toString();
@@ -30,12 +28,16 @@ const setSceneId = scene => context => {
 const getSelectedEndpointRepresentationText = endpoint => {
 	let endpointsRepresentation = `✅ Selected endpoint <b>${endpoint.name}</b>\n`;
 	
-	
-	endpointsRepresentation += endpoint.expireAt
-		? DateTime.now() < DateTime.fromJSDate(endpoint.expireAt)
-			? `expires in: ${getHumanReadableDateDifference(new Date(), endpoint.expireAt)}\n`
-			: `already expired ⌛\n`
-		: `never expires ♾️\n`;
+	if (!endpoint.expireAt)
+		endpointsRepresentation += `never expires ♾️\n`;
+	else {
+		const expireAt = DateTime.fromJSDate(endpoint.expireAt);
+		
+		endpointsRepresentation += DateTime.now() < expireAt
+			? `expires in: ${expireAt.diffNow(['months', 'days', 'hours', 'minutes'])
+				.toFormat('d \'days,\' h \'hours,\' m \'minutes and\' s \'seconds\'')}\n`
+			: `already expired ⌛\n`;
+	}
 	
 	const dataKeys = ['url', 'type', 'data', 'interval'];
 	
@@ -60,7 +62,7 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	
 	const rows = Endpoinsts.reduce((acc, e) => ({
 		...acc,
-		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() > DateTime.fromJSDate(e.expireAt) ? '♾️' : '⌛' : ''}`
+		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() < DateTime.fromJSDate(e.expireAt) ? '♾️' : '⌛' : ''}`
 	}), {});
 	
 	const keyboard = TelegramBot.createPaginationKeyboard({ rows, page, totalPages, sceneId });

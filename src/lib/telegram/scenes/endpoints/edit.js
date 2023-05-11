@@ -1,6 +1,5 @@
 import { Scenes } from 'telegraf';
 import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-import { addToDate } from '@lib/date';
 import models from '@/models';
 import log from '@lib/log';
 import {
@@ -9,6 +8,7 @@ import {
 	scheduleEndpointExpirationAlert
 } from '@lib/pgBoss/handlers/endpointMonitoring';
 import TelegramBot from '@classes/TelegramBot';
+import { DateTime } from 'luxon';
 /*
 TODO разделить utils на файлы, 'add' сделать дикекторией, использовать require-all
 TODO сделать константами paramNames
@@ -43,7 +43,8 @@ const editEndpoint = new Scenes.WizardScene(SCENE_NAME_EDIT_ENDPOINT,
 			if (isNaN(amount) || amount < 1)
 				return await TelegramBot.sendValidationFailedMessage(context, paramName);
 			
-			context.wizard.state.endpoint.expireAt = addToDate(new Date(), amount, unit);
+			context.wizard.state.endpoint.expireAt = DateTime.now()
+				.plus({ [unit]: amount }).toJSDate();
 		} catch (e) {
 			return await TelegramBot.sendValidationFailedMessage(context, paramName);
 		}
@@ -59,12 +60,10 @@ editEndpoint.command('cancel', async context => {
 async function saveEndpoint(context) {
 	try {
 		const endpointId = context.wizard.state.endpointId;
-		await models.Endpoint.update(context.wizard.state.endpoint, { where: { id: endpointId } });
 		
-		if (!isMonitoringEndpoint(endpointId))
-			await runEndpointMonitoring(endpointId);
+		const endpoint = await models.Endpoint.findByPk(endpointId);
 		
-		await scheduleEndpointExpirationAlert(endpointId, context.wizard.state.endpoint.expireAt);
+		await endpoint.update(context.wizard.state.endpoint);
 		
 		await context.replyWithHTML(`✅ Endpoint was saved!`);
 		

@@ -28,16 +28,13 @@ module.exports = {
 				allowNull: false
 			},
 			data: {
-				type: Sequelize.JSON,
-				allowNull: true
+				type: Sequelize.JSONB
 			},
 			httpMethod: {
-				type: Sequelize.ENUM(HTTP_METHOD_GET, HTTP_METHOD_POST),
-				allowNull: true
+				type: Sequelize.ENUM(HTTP_METHOD_GET, HTTP_METHOD_POST)
 			},
 			restSuccessStatus: {
-				type: Sequelize.INTEGER,
-				allowNull: true
+				type: Sequelize.INTEGER
 			},
 			interval: {
 				type: Sequelize.INTEGER,
@@ -45,19 +42,21 @@ module.exports = {
 			},
 			expireAt: {
 				allowNull: true,
-				type: Sequelize.DATE
+				type: 'TIMESTAMP'
 			},
 			lastQueuedAt: {
 				allowNull: true,
-				type: Sequelize.DATE
+				type: 'TIMESTAMP'
 			},
 			createdAt: {
 				allowNull: false,
-				type: Sequelize.DATE
+				type: 'TIMESTAMP',
+				defaultValue: Sequelize.literal('NOW()')
 			},
 			updatedAt: {
 				allowNull: false,
-				type: Sequelize.DATE
+				type: 'TIMESTAMP',
+				defaultValue: Sequelize.literal('NOW()')
 			}
 		});
 	},
