@@ -80,9 +80,13 @@ module.exports = (sequelize, DataTypes) => {
 					if (!isSuccess)
 						await bot.telegram.sendMessage(endpoint.chatId, fmt`❌ ${bold('ERROR')} occurred while monitoring endpoint ${bold(name)}. Details: \n${italic(message)}`);
 					
+					console.log(endpoint.interval)
+					
 					const startAfter = DateTime.now()
-						.plus({ seconds: endpoint.interval })
+						.plus({ second: endpoint.interval })
 						.toJSDate();
+					
+					console.log(startAfter)
 					
 					await pgBoss.send(job.name, job.data, { startAfter });
 					

@@ -97,6 +97,10 @@ class TelegramBot {
 			this._botInstance.command(commandName, commands[commandName]);
 	}
 	
+	launch() {
+		this._botInstance.launch();
+	}
+	
 	async sendGreetingMessage(context) {
 		await context.reply('Hey! I am a GraphQL Pingator. I will rapidly alert you in case something has broken 🔥\n\nClick /endpoints and start working with me.');
 	}

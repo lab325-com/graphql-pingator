@@ -54,13 +54,13 @@ const getSelectedEndpointRepresentationText = endpoint => {
 const getSceneId = context => context.scene.state.id;
 
 async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
-	const { Pagination: { totalPages, total }, Endpoinsts } = await models.Endpoint.paginate({
+	const { Pagination: { totalPages, total }, Endpoints } = await models.Endpoint.paginate({
 		where: { chatId: chatId },
 		limit: ENDPOINTS_PER_PAGE,
 		offset: page * ENDPOINTS_PER_PAGE
 	});
 	
-	const rows = Endpoinsts.reduce((acc, e) => ({
+	const rows = Endpoints.reduce((acc, e) => ({
 		...acc,
 		[e.id]: `${e.name} (${e.type}) ${e.expireAt ? DateTime.now() < DateTime.fromJSDate(e.expireAt) ? '♾️' : '⌛' : ''}`
 	}), {});
