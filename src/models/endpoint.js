@@ -69,6 +69,7 @@ module.exports = (sequelize, DataTypes) => {
 					
 					const { expireAt, name } = endpoint;
 					
+					// TODO precalculate if endpoint expires after interval
 					if (expireAt && DateTime.now() > DateTime.fromJSDate(expireAt))
 						return await telegram.sendMessage(endpoint.chatId, fmt`⌛ Endpoint ${bold(name)} has been expired`);
 					
