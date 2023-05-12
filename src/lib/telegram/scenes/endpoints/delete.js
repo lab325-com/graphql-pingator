@@ -1,25 +1,27 @@
 import { Scenes } from 'telegraf';
 import { SCENE_NAME_DELETE_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
-import models from '@/models';
+import models from '@models';
+import { COMMAND_NAME_NO, COMMAND_NAME_YES } from '@constants/Command';
 
-const deleteEndpoint = new Scenes.BaseScene(SCENE_NAME_DELETE_ENDPOINT);
+const deleteEndpointScene = new Scenes.BaseScene(SCENE_NAME_DELETE_ENDPOINT);
 
-deleteEndpoint.enter(async (context) => {
+deleteEndpointScene.enter(async context => {
 	if (!context.scene.state.endpointId)
 		return context.scene.leave();
 	
-	await context.replyWithHTML(`⚠️ Are you sure you want to delete this endpoint? \n/yes or /no`);
+	await context.replyWithHTML(`⚠️ Are you sure you want to delete this endpoint? \n/${COMMAND_NAME_YES} or /${COMMAND_NAME_NO}`);
 });
 
-deleteEndpoint.command('yes', async (context) => {
-	const endpointId = context.scene.state.endpointId;
+deleteEndpointScene.command(COMMAND_NAME_YES, async context => {
+	const id = context.scene.state.endpointId;
 	
-	await models.Endpoint.destroy({ where: { id: endpointId, chatId: context.message.chat.id.toString() } });
+	await models.Endpoint.destroy({
+		where: { id, chatId: context.message.chat.id.toString() }
+	});
 	
 	return context.scene.enter(SCENE_NAME_ENDPOINTS);
 });
 
-deleteEndpoint.command('no', async (context) =>
-	context.scene.enter(SCENE_NAME_ENDPOINTS));
+deleteEndpointScene.command(COMMAND_NAME_NO, async context => context.scene.enter(SCENE_NAME_ENDPOINTS));
 
-export default deleteEndpoint;
+export default deleteEndpointScene;
