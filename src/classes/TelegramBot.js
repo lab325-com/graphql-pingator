@@ -1,4 +1,4 @@
-import { Scenes, Telegraf, Markup } from 'telegraf';
+import { Markup, Scenes, Telegraf } from 'telegraf';
 import PostgresSession from 'telegraf-postgres-session';
 import { message } from 'telegraf/filters';
 import configs from '@config/sequelizeConfig';
@@ -7,6 +7,8 @@ import {
 	PAGINATION_PAGE_BUTTON,
 	PAGINATION_PREVIOUS_PAGE_BUTTON
 } from '@constants/Pagination';
+import { EVENT_NAME_GROUP_CHAT_CREATED, EVENT_NAME_NEW_CHAT_MEMBERS } from '@constants/Event';
+
 const env = process.env.NODE_ENV || 'local';
 const config = configs[env];
 
@@ -16,10 +18,18 @@ class TelegramBot {
 	
 	_stage;
 	
-	constructor(botApiToken, scenes) {
-		// TODO проверить, что бот создался
+	/**
+	 *
+	 * @param botApiToken
+	 * @param scenes
+	 * @param commands {[command_name]: [handler]}
+	 */
+	constructor(botApiToken, scenes, commands) {
 		this._botInstance = new Telegraf(botApiToken);
-		// TODO проверить что каждый элемент scenes это инстанс сцены
+		
+		if (!scenes.every(e => e instanceof Scenes.BaseScene || e instanceof Scenes.WizardScene))
+			throw new Error(`Scenes has elements that are not scenes`);
+		
 		this._stage = new Scenes.Stage(scenes);
 		
 		this._botInstance.use((new PostgresSession({
@@ -28,30 +38,34 @@ class TelegramBot {
 		})).middleware());
 		
 		this._botInstance.use(this._stage.middleware());
+		
+		this._botInstance.start(async context => await this.sendGreetingMessage(context));
+		
+		this._botInstance.on(message(EVENT_NAME_GROUP_CHAT_CREATED), async context => await this.sendGreetingMessage(context));
+		
+		this._botInstance.on(message(EVENT_NAME_NEW_CHAT_MEMBERS), async context => {
+			if (context.message.new_chat_members.find(e => e.id === context.botInfo.id))
+				await this.sendGreetingMessage(context);
+		});
+		
+		for (const commandName in commands)
+			this._botInstance.command(commandName, commands[commandName]);
 	}
 	
 	static isMessageNullOrEmpty(context) {
-		Boolean(context.message?.text?.trim() === '');
+		return Boolean(context.message?.text?.trim() === '');
 	}
 	
 	static async sendValidationFailedMessage(context, paramName) {
 		await context.replyWithHTML(`🚫 <b>Invalid ${paramName} was sent.</b> Enter ${paramName} again!`);
 	}
 	
-	static async sendLoadingMessage(context) {
-		await context.replyWithHTML('Loading...');
-	}
-	
-	async sendMessage(chatId, message, extra = null) {
-		await this._botInstance.telegram.sendMessage(chatId, message, extra)
-	}
-	
 	/**
-	 *
+	 * Creates inline pagination keyboard
 	 * @param rows {[id]: string}
 	 * @param callbackDataSelector
 	 * @param currentPage
-	 * @param pagesCount
+	 * @param totalPages
 	 * @param sceneId
 	 * @returns {Markup<InlineKeyboardMarkup>}
 	 */
@@ -81,24 +95,8 @@ class TelegramBot {
 		return `${sceneId}_${buttonId}`;
 	}
 	
-	/**
-	 *
-	 * @param commands {[command_name]: [handler]}
-	 * @returns {Promise<void>}
-	 */
-	async init(commands) {
-		this._botInstance.start(async context => await this.sendGreetingMessage(context));
-		
-		// TODO make constant from 'group_chat_created'
-		this._botInstance.on(message('group_chat_created'), async context => await this.sendGreetingMessage(context));
-		// TODO make constant from 'new_chat_members'
-		this._botInstance.on(message('new_chat_members'), async context => {
-			if (context.message.new_chat_members.find(e => e.id === context.botInfo.id))
-				await this.sendGreetingMessage(context);
-		});
-		
-		for (const commandName in commands)
-			this._botInstance.command(commandName, commands[commandName]);
+	async sendMessage(chatId, message, extra = null) {
+		await this._botInstance.telegram.sendMessage(chatId, message, extra);
 	}
 	
 	launch() {

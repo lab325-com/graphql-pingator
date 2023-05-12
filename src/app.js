@@ -13,5 +13,4 @@ const init = async () => {
 	log.info('🚀 Telegram Bot was started');
 };
 
-
 init().catch(log.error);

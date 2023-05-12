@@ -1,14 +1,7 @@
 import { config } from 'dotenv';
+import { POSTGRES_DB, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_USER } from '@config/env';
 
 config();
-
-import {
-	POSTGRES_PASSWORD,
-	POSTGRES_USER,
-	POSTGRES_DB,
-	POSTGRES_HOST,
-	POSTGRES_PORT
-} from '@config/env';
 
 const sequelizeConfig = {
 	username: POSTGRES_USER,

@@ -19,6 +19,7 @@ import {
 	PAGINATION_PAGE_BUTTON,
 	PAGINATION_PREVIOUS_PAGE_BUTTON
 } from '@constants/Pagination';
+import { EVENT_NAME_CALLBACK_QUERY } from '@constants/Event';
 
 const setSceneId = context => {
 	context.scene.state.id = DateTime.now().toMillis()
@@ -34,7 +35,7 @@ const getSelectedEndpointRepresentationText = endpoint => {
 		const expireAt = DateTime.fromJSDate(endpoint.expireAt);
 		
 		endpointsRepresentation += DateTime.now() < expireAt
-			? `expires in: ${expireAt.diffNow(['months', 'days', 'hours', 'minutes'])
+			? `expires in: ${expireAt.diffNow(['years', 'months', 'days', 'hours', 'minutes', 'seconds'])
 				.toFormat('d \'days,\' h \'hours,\' m \'minutes and\' s \'seconds\'')}\n`
 			: `already expired ⌛\n`;
 	}
@@ -47,13 +48,13 @@ const getSelectedEndpointRepresentationText = endpoint => {
 	for (const key of dataKeys)
 		endpointsRepresentation += `${_.startCase(key)}: ${endpoint[key]}\n`;
 	
-	endpointsRepresentation += `\n📌 Click /delete or /edit`;
+	endpointsRepresentation += `\n📌 Click /${COMMAND_NAME_DELETE} or /${COMMAND_NAME_EDIT}`;
 	
 	return endpointsRepresentation;
 };
 const getSceneId = context => context.scene.state.id;
 
-async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
+const getInlineEndpointsKeyboard = async (chatId, sceneId, page = 0) => {
 	const { Pagination: { totalPages, total }, Endpoints } = await models.Endpoint.paginate({
 		where: { chatId: chatId },
 		limit: ENDPOINTS_PER_PAGE,
@@ -68,11 +69,11 @@ async function getInlineEndpointsKeyboard(chatId, sceneId, page = 0) {
 	const keyboard = total > 0 ? TelegramBot.createPaginationKeyboard({ rows, page, totalPages, sceneId }) : null;
 	
 	return { keyboard, rows, total, totalPages };
-}
+};
 
-const endpointsScene = new Scenes.BaseScene(SCENE_NAME_ENDPOINTS);
+const endpointsListScene = new Scenes.BaseScene(SCENE_NAME_ENDPOINTS);
 
-endpointsScene.enter(async context => {
+endpointsListScene.enter(async context => {
 	context.scene.state = _.omit(context.scene.state, ['totalPages', 'page']);
 	
 	setSceneId(context);
@@ -86,8 +87,8 @@ endpointsScene.enter(async context => {
 	context.scene.state.totalPages = totalPages;
 	
 	const answer = total
-		? fmt`${bold(`List of Endpoints (${total})`)}\n\n📌 To add new endpoint click /add \n📌 Toggle any endpoint to see its details and then edit or delete it`
-		: fmt`You have ${bold('0')} endpoints\n\n📌 To add new endpoint click /add`;
+		? fmt`${bold(`List of Endpoints (${total})`)}\n\n📌 To add new endpoint click /${COMMAND_NAME_ADD} \n📌 Toggle any endpoint to see its details and then edit or delete it`
+		: fmt`You have ${bold('0')} endpoints\n\n📌 To add new endpoint click /${COMMAND_NAME_ADD}`;
 	
 	await context.reply(answer, keyboard);
 });
@@ -108,9 +109,9 @@ const commands = {
 };
 
 for (const command in commands)
-	endpointsScene.command(command, commands[command]);
+	endpointsListScene.command(command, commands[command]);
 
-endpointsScene.on('callback_query', async context => {
+endpointsListScene.on(EVENT_NAME_CALLBACK_QUERY, async context => {
 	const currentSceneId = getSceneId(context);
 	const callbackData = context.callbackQuery.data;
 	const chatId = context.callbackQuery.message.chat.id;
@@ -157,4 +158,4 @@ endpointsScene.on('callback_query', async context => {
 	return await context.answerCbQuery();
 });
 
-export default endpointsScene;
+export default endpointsListScene;
