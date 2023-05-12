@@ -1,14 +1,13 @@
 import TelegramBot from '@classes/TelegramBot';
+import { PARAM_NAME_SUCCESS_STATUS_CODE } from '@constants/Params';
 
 export default async context => {
-	const paramName = 'success status code';
-	
 	if (TelegramBot.isMessageNullOrEmpty(context))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_SUCCESS_STATUS_CODE);
 	
 	const restSuccessStatus = parseInt(context.message.text);
 	if (isNaN(restSuccessStatus) || restSuccessStatus < 100 || restSuccessStatus > 599)
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_SUCCESS_STATUS_CODE);
 	
 	context.wizard.state.endpoint.restSuccessStatus = restSuccessStatus;
 	

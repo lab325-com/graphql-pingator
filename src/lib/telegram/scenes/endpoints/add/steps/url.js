@@ -2,17 +2,16 @@ import TelegramBot from '@classes/TelegramBot';
 import { isValidHttpUrl } from '@lib/validator';
 import { ENDPOINT_TYPE_GRAPHQL } from '@constants/Endpoint';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
+import { PARAM_NAME_URL } from '@constants/Params';
 
 export default async context => {
-	const paramName = 'url';
-	
 	if (TelegramBot.isMessageNullOrEmpty(context))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_URL);
 	
 	const url = context.message.text;
 	
 	if (!isValidHttpUrl(url))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_URL);
 	
 	context.wizard.state.endpoint.url = url;
 	

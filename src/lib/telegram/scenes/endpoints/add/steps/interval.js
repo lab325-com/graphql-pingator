@@ -1,15 +1,14 @@
 import TelegramBot from '@classes/TelegramBot';
 import { COMMAND_NAME_SAVE } from '@constants/Command';
+import { PARAM_NAME_INTERVAL } from '@constants/Params';
 
 export default async context => {
-	const paramName = 'interval';
-	
 	if (TelegramBot.isMessageNullOrEmpty(context))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_INTERVAL);
 	
 	const interval = parseInt(context.message.text);
 	if (isNaN(interval) || interval < 1 || interval > 2147483647)
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_INTERVAL);
 	
 	context.wizard.state.endpoint.interval = interval;
 	context.wizard.state.canSave = true;

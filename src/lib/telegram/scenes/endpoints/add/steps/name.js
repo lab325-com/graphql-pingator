@@ -1,11 +1,10 @@
 import TelegramBot from '@classes/TelegramBot';
 import { ENDPOINT_TYPE_GRAPHQL, ENDPOINT_TYPE_REST } from '@constants/Endpoint';
+import { PARAM_NAME_DATA } from '@constants/Params';
 
 export default async context => {
-	const paramName = 'name';
-	
 	if (TelegramBot.isMessageNullOrEmpty(context))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_DATA);
 	
 	context.wizard.state.endpoint.chatId = context.message.chat.id.toString();
 	context.wizard.state.endpoint.name = context.message.text.trim();

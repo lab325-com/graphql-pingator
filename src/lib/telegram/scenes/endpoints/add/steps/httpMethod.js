@@ -1,16 +1,15 @@
 import TelegramBot from '@classes/TelegramBot';
 import { HTTP_METHOD_GET, HTTP_METHOD_POST } from '@constants/Http';
+import { PARAM_NAME_HTTP_METHOD } from '@constants/Params';
 
 export default async context => {
-	const paramName = 'HTTP Method';
-	
 	if (TelegramBot.isMessageNullOrEmpty(context))
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_HTTP_METHOD);
 	
 	const httpMethod = context.message.text.toUpperCase();
 	
 	if (httpMethod !== HTTP_METHOD_GET && httpMethod !== HTTP_METHOD_POST)
-		return await TelegramBot.sendValidationFailedMessage(context, paramName);
+		return await TelegramBot.sendValidationFailedMessage(context, PARAM_NAME_HTTP_METHOD);
 	
 	context.wizard.state.endpoint.httpMethod = httpMethod;
 	
