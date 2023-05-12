@@ -3,8 +3,8 @@ import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene
 import models from '@models';
 import log from '@lib/log';
 import { COMMAND_NAME_CANCEL } from '@constants/Command';
-import startStep from 'steps/start'
-import expirationStep from 'steps/expiration'
+import startStep from './steps/start'
+import expirationStep from './steps/expiration'
 
 export const saveEndpoint = async (context) => {
 	try {

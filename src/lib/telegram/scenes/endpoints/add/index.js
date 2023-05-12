@@ -3,15 +3,15 @@ import models from '@models';
 import log from '@lib/log';
 import { SCENE_NAME_ADD_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import { COMMAND_NAME_CANCEL, COMMAND_NAME_SAVE } from '@constants/Command';
-import starterStep from 'steps/start';
-import nameStep from 'steps/name';
-import typeStep from 'steps/type';
-import urlStep from 'steps/url';
-import httpMethodStep from 'steps/httpMethod';
-import successStatusCode from 'steps/successStatusCode';
-import dataStep from 'steps/data';
-import intervalStep from 'steps/interval';
-import expirationStep from 'steps/expiration';
+import starterStep from './steps/start';
+import nameStep from './steps/name';
+import typeStep from './steps/type';
+import urlStep from './steps/url';
+import httpMethodStep from './steps/httpMethod';
+import successStatusCode from './steps/successStatusCode';
+import dataStep from './steps/data';
+import intervalStep from './steps/interval';
+import expirationStep from './steps/expiration';
 
 export const createEndpoint = async context => {
 	try {
