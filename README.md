@@ -18,4 +18,4 @@ Yep, we also cover cases where your api doesn't respond.
 *At the end of the day* you have nice and user-friendly bot and you are not aware of not knowing of some problems in your web application
 
 ### Wanna ask some questions?
-- email me on makstyulyukov@gmail.com
+- email me on m.tyulyukov@tech.lab325.com
