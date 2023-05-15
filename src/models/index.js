@@ -11,17 +11,17 @@ const config = configs[env];
 
 config.logging = message => log.log('query', message);
 
-log.info('Sequelize connecting...');
+log.info('Sequelize is connecting...');
 
 const sequelize = config.use_env_variable
 	? new Sequelize(process.env[config.use_env_variable], config)
 	: new Sequelize(config.database, config.username, config.password, config);
 
 sequelize.authenticate()
-	.then(() => log.info(`Sequelize connected to db ${config.database}`))
-	.catch(err => console.error('Connecting error', err));
+	.then(() => log.info(`Sequelize is connected to db ${config.database}`))
+	.catch(err => log.error('Error occurred while connecting to db', err));
 
-log.info('Models loading...');
+log.info('Models are loading...');
 
 fs
 	.readdirSync(__dirname)
@@ -38,7 +38,8 @@ Object.keys(db).forEach(modelName => {
 		db[modelName].associate(db);
 	}
 });
-log.info('Models loaded');
+
+log.info('Models are loaded');
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

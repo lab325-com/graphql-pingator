@@ -12,4 +12,5 @@ build
 system.js
 local
 .env
+.npmrc
 
