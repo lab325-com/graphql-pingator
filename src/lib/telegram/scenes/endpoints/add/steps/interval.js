@@ -1,6 +1,7 @@
 import TelegramBot from '@classes/TelegramBot';
 import { COMMAND_NAME_SAVE } from '@constants/Command';
 import { PARAM_NAME_INTERVAL } from '@constants/Params';
+import { ENDPOINT_NEVER_EXPIRES_VALUE } from '@constants/Endpoint';
 
 export default async context => {
 	if (TelegramBot.isMessageNullOrEmpty(context))
@@ -13,6 +14,6 @@ export default async context => {
 	context.wizard.state.endpoint.interval = interval;
 	context.wizard.state.canSave = true;
 	
-	await context.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>never</i> or click just /${COMMAND_NAME_SAVE} and it won't expire`);
+	await context.replyWithHTML(`<b>Enter when endpoint expires in</b> \nInput: <i>amount</i> <i>unit</i> \nAvailable units: second, minute, hour, day, week, month, quarter, year \ne.g 60 days, 2 weeks, 1 year \n\n📌 you can type <i>${ENDPOINT_NEVER_EXPIRES_VALUE}</i> or click just /${COMMAND_NAME_SAVE} and it won't expire`);
 	return context.wizard.next();
 }

@@ -2,7 +2,7 @@ import { Scenes } from 'telegraf';
 import { SCENE_NAME_EDIT_ENDPOINT, SCENE_NAME_ENDPOINTS } from '@constants/Scene';
 import models from '@models';
 import log from '@lib/log';
-import { COMMAND_NAME_CANCEL } from '@constants/Command';
+import { COMMAND_NAME_CANCEL, COMMAND_NAME_SAVE } from '@constants/Command';
 import startStep from './steps/start'
 import expirationStep from './steps/expiration'
 
@@ -20,7 +20,7 @@ export const saveEndpoint = async (context) => {
 		return await context.scene.enter(SCENE_NAME_ENDPOINTS);
 	} catch (e) {
 		log.error(e);
-		await context.replyWithHTML(`⚠️ Error occurred while saving endpoint, try click /save again!`);
+		await context.replyWithHTML(`⚠️ Error occurred while saving endpoint, try click /${COMMAND_NAME_SAVE} again!`);
 	}
 };
 

@@ -52,6 +52,7 @@ const getSelectedEndpointRepresentationText = endpoint => {
 	
 	return endpointsRepresentation;
 };
+
 const getSceneId = context => context.scene.state.id;
 
 const getInlineEndpointsKeyboard = async (chatId, sceneId, page = 0) => {
@@ -92,7 +93,6 @@ endpointsListScene.enter(async context => {
 	
 	await context.reply(answer, keyboard);
 });
-
 
 const commands = {
 	[COMMAND_NAME_ADD]: async context => await context.scene.enter(SCENE_NAME_ADD_ENDPOINT),

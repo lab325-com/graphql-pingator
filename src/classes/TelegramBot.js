@@ -18,12 +18,6 @@ class TelegramBot {
 	
 	_stage;
 	
-	/**
-	 *
-	 * @param botApiToken
-	 * @param scenes
-	 * @param commands {[command_name]: [handler]}
-	 */
 	constructor(botApiToken, scenes, commands) {
 		this._botInstance = new Telegraf(botApiToken);
 		
@@ -60,15 +54,6 @@ class TelegramBot {
 		await context.replyWithHTML(`🚫 <b>Invalid ${paramName} was sent.</b> Enter ${paramName} again!`);
 	}
 	
-	/**
-	 * Creates inline pagination keyboard
-	 * @param rows {[id]: string}
-	 * @param callbackDataSelector
-	 * @param currentPage
-	 * @param totalPages
-	 * @param sceneId
-	 * @returns {Markup<InlineKeyboardMarkup>}
-	 */
 	static createPaginationKeyboard({ rows, currentPage = 0, totalPages, sceneId }) {
 		const buttons = [];
 		
