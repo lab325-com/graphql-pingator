@@ -9,7 +9,8 @@
     "migrate": "npx sequelize-cli db:migrate",
     "undo-last-migration": "npx sequelize-cli db:migrate:undo",
     "undo-migrations": "npx sequelize-cli db:migrate:undo:all",
-    "lint": "eslint src --ext .js"
+    "lint": "eslint src --ext .js",
+    "generate-env-example": "node generate-env-example.js"
   },
   "repository": {
     "type": "git",

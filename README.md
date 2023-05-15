@@ -15,4 +15,7 @@ Yep, we also cover cases where your api doesn't respond.
 - You can provide expiration to each endpoint, so it won't hit your api forever
 - It supports expected status code for your REST endpoint. So if everything is okay - return for example 200 OK, if your RabbitMQ is not working - return any other status code and our bot will alert you about it
 
-*At the end of the day* you have nice and user-friendly bot and you are not aware of not knowing of some problems in your web application/
+*At the end of the day* you have nice and user-friendly bot and you are not aware of not knowing of some problems in your web application
+
+### Wanna ask some questions?
+- email me on makstyulyukov@gmail.com
