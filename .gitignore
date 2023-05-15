@@ -1,0 +1,16 @@
+node_modules
+.idea
+.DS_store
+.graphqlconfig
+schema.graphql
+logs
+data
+media/*
+docker-compose.yml
+docker/*
+build
+system.js
+local
+.env
+.npmrc
+

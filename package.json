@@ -1,0 +1,55 @@
+{
+  "name": "graphql-pingator",
+  "version": "1.0.0",
+  "description": "GraphQL Pingator was created to alert users when api is down",
+  "main": "src/entry.js",
+  "scripts": {
+    "start": "docker-compose up -d --build",
+    "stop": "docker-compose down",
+    "migrate": "npx sequelize-cli db:migrate",
+    "undo-last-migration": "npx sequelize-cli db:migrate:undo",
+    "undo-migrations": "npx sequelize-cli db:migrate:undo:all",
+    "lint": "eslint src --ext .js",
+    "generate-env-example": "node generate-env-example.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.lab325.com/lab325/graphql-pingator"
+  },
+  "keywords": [
+    "graphql",
+    "pingator",
+    "heath-check"
+  ],
+  "author": "tyulyukov",
+  "license": "ISC",
+  "dependencies": {
+    "@lab325/log": "^1.0.1",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "lodash": "^4.17.21",
+    "luxon": "^3.3.0",
+    "pg": "^8.10.0",
+    "pg-boss": "^9.0.0",
+    "sequelize": "^6.31.0",
+    "telegraf": "^4.12.2",
+    "telegraf-postgres-session": "^1.0.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.0",
+    "@babel/eslint-parser": "^7.16.3",
+    "@babel/node": "^7.16.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.0",
+    "@babel/plugin-transform-runtime": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "@babel/register": "^7.16.0",
+    "@lab325/eslint-config": "^1.0.4",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^17.0.18",
+    "babel-plugin-module-resolver": "^4.1.0",
+    "eslint": "^7.32.0",
+    "pm2": "^4.5.4",
+    "sequelize-cli": "^6.3.0"
+  }
+}
